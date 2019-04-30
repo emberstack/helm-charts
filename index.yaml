@@ -1,0 +1,28 @@
+apiVersion: v1
+entries:
+  reflector:
+  - apiVersion: v1
+    created: 2019-04-30T08:52:40.369653446Z
+    description: A Helm chart to deploy Reflector
+    digest: d4dd699f29d1f57cede759aa44540a38548b35e1def3528ad0acfad2fb3947be
+    engine: gotpl
+    home: https://github.com/EmberStack/ES.Kubernetes.Reflector
+    icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
+    keywords:
+    - reflector
+    - controller
+    - copy
+    - secrets
+    - configmaps
+    - cert-manager
+    - certificates
+    maintainers:
+    - email: helm-charts@emberstack.com
+      name: winromulus
+    name: reflector
+    sources:
+    - https://github.com/EmberStack/ES.Kubernetes.Reflector
+    urls:
+    - charts/reflector-2.19120.6.tgz
+    version: 2.19120.6
+generated: 2019-04-30T08:52:40.368962651Z
