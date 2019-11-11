@@ -2,7 +2,7 @@ apiVersion: v1
 entries:
   reflector:
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.048386881Z"
+    created: "2019-11-11T00:59:01.59836812Z"
     description: A Helm chart to deploy Reflector
     digest: c08389ade084a2dab6ee2903234bc6bc1a871da9db92d3bad9ef4659c0decfca
     engine: gotpl
@@ -26,7 +26,7 @@ entries:
     - charts/reflector-3.19304.10.tgz
     version: 3.19304.10
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.049018083Z"
+    created: "2019-11-11T00:59:01.599088517Z"
     description: A Helm chart to deploy Reflector
     digest: dbff894b5ccc88b29e712277fa322053cbae245c1b8c37aadb8895572572fefe
     engine: gotpl
@@ -50,7 +50,7 @@ entries:
     - charts/reflector-3.19304.7.tgz
     version: 3.19304.7
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.048726882Z"
+    created: "2019-11-11T00:59:01.598692819Z"
     description: A Helm chart to deploy Reflector
     digest: 51344ffb2ab0292940a5fe3eab72c865cd5f25b5aa77c5f1cb42a794ff99b1ee
     engine: gotpl
@@ -74,7 +74,7 @@ entries:
     - charts/reflector-3.19304.3.tgz
     version: 3.19304.3
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.04797978Z"
+    created: "2019-11-11T00:59:01.598016022Z"
     description: A Helm chart to deploy Reflector
     digest: 4e9c11cb8df03202133418b942add85dd5d9e896a3b386804b64e1e0028712ca
     engine: gotpl
@@ -98,7 +98,7 @@ entries:
     - charts/reflector-2.19197.5.tgz
     version: 2.19197.5
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.047639079Z"
+    created: "2019-11-11T00:59:01.597653724Z"
     description: A Helm chart to deploy Reflector
     digest: f12af0cb7c5e3a6c5ff7ad7ad6dec8fb6eb37bf39a969f03382c387c2fa1199e
     engine: gotpl
@@ -122,7 +122,7 @@ entries:
     - charts/reflector-2.19193.2.tgz
     version: 2.19193.2
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.047255478Z"
+    created: "2019-11-11T00:59:01.597374825Z"
     description: A Helm chart to deploy Reflector
     digest: 343279aad2d3d201450d43909c8012c437b3a535cd66c967aeb0c96b656c09fe
     engine: gotpl
@@ -146,7 +146,7 @@ entries:
     - charts/reflector-2.19191.6.tgz
     version: 2.19191.6
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.046828476Z"
+    created: "2019-11-11T00:59:01.596570029Z"
     description: A Helm chart to deploy Reflector
     digest: c56748a3adfe2c73ac60334b240ba58c3221336b25c3245bd2bcac84943b402c
     engine: gotpl
@@ -170,7 +170,7 @@ entries:
     - charts/reflector-2.19189.6.tgz
     version: 2.19189.6
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.046444575Z"
+    created: "2019-11-11T00:59:01.59626223Z"
     description: A Helm chart to deploy Reflector
     digest: f8e3e1d5d6327d0073aba483c7f9f0113eb758756882dded8a06bb599b7a148f
     engine: gotpl
@@ -194,7 +194,7 @@ entries:
     - charts/reflector-2.19189.3.tgz
     version: 2.19189.3
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.045801273Z"
+    created: "2019-11-11T00:59:01.595871232Z"
     description: A Helm chart to deploy Reflector
     digest: f5b81f2b2ac1f7943c02448aef6945dd0033039a46f872c0803100120c486bde
     engine: gotpl
@@ -218,7 +218,7 @@ entries:
     - charts/reflector-2.19187.7.tgz
     version: 2.19187.7
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.045405272Z"
+    created: "2019-11-11T00:59:01.595533134Z"
     description: A Helm chart to deploy Reflector
     digest: bbb43b2bec8c6275657bdf73008b2a56ce87ac587c0dc5d7d06ebfe1937ad695
     engine: gotpl
@@ -242,7 +242,7 @@ entries:
     - charts/reflector-2.19170.25.tgz
     version: 2.19170.25
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.044894171Z"
+    created: "2019-11-11T00:59:01.595257635Z"
     description: A Helm chart to deploy Reflector
     digest: 5d69b78ac0f15844122e19021cce5ee4f1ecca8bcbb76e1fe8a87f1482da944d
     engine: gotpl
@@ -266,7 +266,7 @@ entries:
     - charts/reflector-2.19140.3.tgz
     version: 2.19140.3
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.044471769Z"
+    created: "2019-11-11T00:59:01.594894237Z"
     description: A Helm chart to deploy Reflector
     digest: d4dd699f29d1f57cede759aa44540a38548b35e1def3528ad0acfad2fb3947be
     engine: gotpl
@@ -291,7 +291,29 @@ entries:
     version: 2.19120.6
   sftp:
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.050308587Z"
+    created: "2019-11-11T00:59:01.600933008Z"
+    description: A Helm chart to deploy SFTP
+    digest: 28776dd8b66ca03c0162b6b8c687af68995581f554b522dd44bff33cf8418d82
+    engine: gotpl
+    home: https://github.com/EmberStack/docker-sftp
+    icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
+    keywords:
+    - sftp
+    - openssh
+    - files
+    - storage
+    - ftp
+    maintainers:
+    - email: helm-charts@emberstack.com
+      name: winromulus
+    name: sftp
+    sources:
+    - https://github.com/EmberStack/docker-sftp
+    urls:
+    - charts/sftp-1.19315.15.tgz
+    version: 1.19315.15
+  - apiVersion: v1
+    created: "2019-11-11T00:59:01.600234311Z"
     description: A Helm chart to deploy SFTP
     digest: 7687b70581de4d61c150cf43ebd3978c1a0da2d2d325927977923a27e33c6fd9
     engine: gotpl
@@ -313,7 +335,7 @@ entries:
     - charts/sftp-1.19315.13.tgz
     version: 1.19315.13
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.049870085Z"
+    created: "2019-11-11T00:59:01.599734314Z"
     description: A Helm chart to deploy SFTP
     digest: ca448174110b9ec92fba92c6e8651ce429d990410f182a8e7a9997e402bd0fc8
     engine: gotpl
@@ -335,7 +357,7 @@ entries:
     - charts/sftp-1.19315.12.tgz
     version: 1.19315.12
   - apiVersion: v1
-    created: "2019-11-11T00:50:45.049489984Z"
+    created: "2019-11-11T00:59:01.599409215Z"
     description: A Helm chart to deploy SFTP
     digest: 04dad03f9bb3c74aefc660ccd8c7670e61a1622863c5b9d3196632eb30f5d02d
     engine: gotpl
@@ -356,4 +378,4 @@ entries:
     urls:
     - charts/sftp-1.19315.10.tgz
     version: 1.19315.10
-generated: "2019-11-11T00:50:45.043510167Z"
+generated: "2019-11-11T00:59:01.594410739Z"
