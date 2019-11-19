@@ -2,10 +2,9 @@ apiVersion: v1
 entries:
   reflector:
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.881040476Z"
+    created: "2019-11-19T10:39:31.724709176Z"
     description: A Helm chart to deploy Reflector
     digest: ff5cda18fc339f5e5a80be0e6041b8437a2be5e4ae3e950405dda1f0c4fa674c
-    engine: gotpl
     home: https://github.com/EmberStack/kubernetes-reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -26,10 +25,9 @@ entries:
     - charts/reflector-3.19315.2.tgz
     version: 3.19315.2
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.879541564Z"
+    created: "2019-11-19T10:39:31.722871799Z"
     description: A Helm chart to deploy Reflector
     digest: c08389ade084a2dab6ee2903234bc6bc1a871da9db92d3bad9ef4659c0decfca
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -50,10 +48,9 @@ entries:
     - charts/reflector-3.19304.10.tgz
     version: 3.19304.10
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.880589072Z"
+    created: "2019-11-19T10:39:31.724076284Z"
     description: A Helm chart to deploy Reflector
     digest: dbff894b5ccc88b29e712277fa322053cbae245c1b8c37aadb8895572572fefe
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -74,10 +71,9 @@ entries:
     - charts/reflector-3.19304.7.tgz
     version: 3.19304.7
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.880051268Z"
+    created: "2019-11-19T10:39:31.723459792Z"
     description: A Helm chart to deploy Reflector
     digest: 51344ffb2ab0292940a5fe3eab72c865cd5f25b5aa77c5f1cb42a794ff99b1ee
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -98,10 +94,9 @@ entries:
     - charts/reflector-3.19304.3.tgz
     version: 3.19304.3
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.878958459Z"
+    created: "2019-11-19T10:39:31.722265606Z"
     description: A Helm chart to deploy Reflector
     digest: 4e9c11cb8df03202133418b942add85dd5d9e896a3b386804b64e1e0028712ca
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -122,10 +117,9 @@ entries:
     - charts/reflector-2.19197.5.tgz
     version: 2.19197.5
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.878489755Z"
+    created: "2019-11-19T10:39:31.721617514Z"
     description: A Helm chart to deploy Reflector
     digest: f12af0cb7c5e3a6c5ff7ad7ad6dec8fb6eb37bf39a969f03382c387c2fa1199e
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -146,10 +140,9 @@ entries:
     - charts/reflector-2.19193.2.tgz
     version: 2.19193.2
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.877435746Z"
+    created: "2019-11-19T10:39:31.721035321Z"
     description: A Helm chart to deploy Reflector
     digest: 343279aad2d3d201450d43909c8012c437b3a535cd66c967aeb0c96b656c09fe
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -170,10 +163,9 @@ entries:
     - charts/reflector-2.19191.6.tgz
     version: 2.19191.6
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.877035143Z"
+    created: "2019-11-19T10:39:31.720396828Z"
     description: A Helm chart to deploy Reflector
     digest: c56748a3adfe2c73ac60334b240ba58c3221336b25c3245bd2bcac84943b402c
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -194,10 +186,9 @@ entries:
     - charts/reflector-2.19189.6.tgz
     version: 2.19189.6
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.87665204Z"
+    created: "2019-11-19T10:39:31.719779136Z"
     description: A Helm chart to deploy Reflector
     digest: f8e3e1d5d6327d0073aba483c7f9f0113eb758756882dded8a06bb599b7a148f
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -218,10 +209,9 @@ entries:
     - charts/reflector-2.19189.3.tgz
     version: 2.19189.3
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.875891934Z"
+    created: "2019-11-19T10:39:31.719136444Z"
     description: A Helm chart to deploy Reflector
     digest: f5b81f2b2ac1f7943c02448aef6945dd0033039a46f872c0803100120c486bde
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -242,10 +232,9 @@ entries:
     - charts/reflector-2.19187.7.tgz
     version: 2.19187.7
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.87548723Z"
+    created: "2019-11-19T10:39:31.718537451Z"
     description: A Helm chart to deploy Reflector
     digest: bbb43b2bec8c6275657bdf73008b2a56ce87ac587c0dc5d7d06ebfe1937ad695
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -266,10 +255,9 @@ entries:
     - charts/reflector-2.19170.25.tgz
     version: 2.19170.25
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.874629923Z"
+    created: "2019-11-19T10:39:31.717952558Z"
     description: A Helm chart to deploy Reflector
     digest: 5d69b78ac0f15844122e19021cce5ee4f1ecca8bcbb76e1fe8a87f1482da944d
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -290,10 +278,9 @@ entries:
     - charts/reflector-2.19140.3.tgz
     version: 2.19140.3
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.873825516Z"
+    created: "2019-11-19T10:39:31.717216367Z"
     description: A Helm chart to deploy Reflector
     digest: d4dd699f29d1f57cede759aa44540a38548b35e1def3528ad0acfad2fb3947be
-    engine: gotpl
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/ES.FX/es.fx.1.0.0.0.png
     keywords:
@@ -315,10 +302,30 @@ entries:
     version: 2.19120.6
   sftp:
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.88516091Z"
+    created: "2019-11-19T10:39:31.732759279Z"
+    description: A Helm chart to deploy SFTP
+    digest: 5f993210a9738c26705eb3c4187e1d42ccbdb576629a0214d812eba7c9ec8b03
+    home: https://github.com/EmberStack/docker-sftp
+    icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
+    keywords:
+    - sftp
+    - openssh
+    - files
+    - storage
+    - ftp
+    maintainers:
+    - email: helm-charts@emberstack.com
+      name: winromulus
+    name: sftp
+    sources:
+    - https://github.com/EmberStack/docker-sftp
+    urls:
+    - charts/sftp-1.19323.2.tgz
+    version: 1.19323.2
+  - apiVersion: v1
+    created: "2019-11-19T10:39:31.730170411Z"
     description: A Helm chart to deploy SFTP
     digest: 1f4c9fcc40f9b2db8fa5c71ee1aa79244de15eb73b6167c54a5be5e766674c74
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -337,10 +344,9 @@ entries:
     - charts/sftp-1.19316.11.tgz
     version: 1.19316.11
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.884696007Z"
+    created: "2019-11-19T10:39:31.72936062Z"
     description: A Helm chart to deploy SFTP
     digest: 7066e05e80ce00805e8dd1865a79e972525bea5705becff29bfe9e2bf85fa105
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -359,10 +365,9 @@ entries:
     - charts/sftp-1.19316.10.tgz
     version: 1.19316.10
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.88629312Z"
+    created: "2019-11-19T10:39:31.732186186Z"
     description: A Helm chart to deploy SFTP
     digest: efabcd8f00a00896b42eeaee5a0233beef039e81657b0e369e00746cab3f8a7d
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -381,10 +386,9 @@ entries:
     - charts/sftp-1.19316.8.tgz
     version: 1.19316.8
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.885848016Z"
+    created: "2019-11-19T10:39:31.731493395Z"
     description: A Helm chart to deploy SFTP
     digest: 7e100f34dd6f13e766c48a004518a91024d6379f0434966456942432eba0090a
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -403,10 +407,9 @@ entries:
     - charts/sftp-1.19316.7.tgz
     version: 1.19316.7
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.885500913Z"
+    created: "2019-11-19T10:39:31.730843102Z"
     description: A Helm chart to deploy SFTP
     digest: a32ada0955946e1e0ad0ccfcc964d158a89a15f525b54728a74916cb35afdc4d
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -425,10 +428,9 @@ entries:
     - charts/sftp-1.19316.6.tgz
     version: 1.19316.6
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.882619789Z"
+    created: "2019-11-19T10:39:31.728619429Z"
     description: A Helm chart to deploy SFTP
     digest: 28776dd8b66ca03c0162b6b8c687af68995581f554b522dd44bff33cf8418d82
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -447,10 +449,9 @@ entries:
     - charts/sftp-1.19315.15.tgz
     version: 1.19315.15
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.882316587Z"
+    created: "2019-11-19T10:39:31.727826339Z"
     description: A Helm chart to deploy SFTP
     digest: 7687b70581de4d61c150cf43ebd3978c1a0da2d2d325927977923a27e33c6fd9
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -469,10 +470,9 @@ entries:
     - charts/sftp-1.19315.13.tgz
     version: 1.19315.13
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.881903283Z"
+    created: "2019-11-19T10:39:31.72603326Z"
     description: A Helm chart to deploy SFTP
     digest: ca448174110b9ec92fba92c6e8651ce429d990410f182a8e7a9997e402bd0fc8
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -491,10 +491,9 @@ entries:
     - charts/sftp-1.19315.12.tgz
     version: 1.19315.12
   - apiVersion: v1
-    created: "2019-11-12T08:15:56.88149508Z"
+    created: "2019-11-19T10:39:31.725367969Z"
     description: A Helm chart to deploy SFTP
     digest: 04dad03f9bb3c74aefc660ccd8c7670e61a1622863c5b9d3196632eb30f5d02d
-    engine: gotpl
     home: https://github.com/EmberStack/docker-sftp
     icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
     keywords:
@@ -512,4 +511,4 @@ entries:
     urls:
     - charts/sftp-1.19315.10.tgz
     version: 1.19315.10
-generated: "2019-11-12T08:15:56.872813008Z"
+generated: "2019-11-19T10:39:31.716356977Z"
