@@ -3,7 +3,7 @@ entries:
   azure-pipelines-agent:
   - apiVersion: v2
     appVersion: 1.0.36
-    created: "2020-01-12T18:48:00.45865203Z"
+    created: "2020-01-12T19:05:24.772533172Z"
     description: A Helm chart for Azure Pipelines Agent
     digest: 10340d94266d4863db823284f7424d659adf0251a90ed5e1607a961d3551a6f8
     home: https://github.com/emberstack/docker-azure-pipelines-agent
@@ -25,7 +25,7 @@ entries:
     version: 1.0.36
   - apiVersion: v2
     appVersion: 1.0.35
-    created: "2020-01-12T18:48:00.458035635Z"
+    created: "2020-01-12T19:05:24.772020572Z"
     description: A Helm chart for Azure Pipelines Agent
     digest: fd50411d5e497e983577d9b303e6c635de1697cd4544cba339d4199c7bb27d10
     home: https://github.com/emberstack/docker-azure-pipelines-agent
@@ -47,7 +47,7 @@ entries:
     version: 1.0.35
   - apiVersion: v2
     appVersion: 1.0.31
-    created: "2020-01-12T18:48:00.456898144Z"
+    created: "2020-01-12T19:05:24.771587171Z"
     description: A Helm chart for Azure Pipelines Agent
     digest: e5e98069b8264be31c59e37baed7e387579cdc89361e1e1da873d4b3a2047c15
     home: https://github.com/emberstack/docker-azure-pipelines-agent
@@ -69,7 +69,7 @@ entries:
     version: 1.0.31
   - apiVersion: v2
     appVersion: 1.0.30
-    created: "2020-01-12T18:48:00.45615305Z"
+    created: "2020-01-12T19:05:24.77105077Z"
     description: A Helm chart for Azure Pipelines Agent
     digest: 039e76a7f82c1bba26ba70fc46b9d2631d2d85e1c6e397f33cae8a8692356883
     home: https://github.com/emberstack/docker-azure-pipelines-agent
@@ -91,7 +91,7 @@ entries:
     version: 1.0.30
   - apiVersion: v2
     appVersion: 1.0.26
-    created: "2020-01-12T18:48:00.455167657Z"
+    created: "2020-01-12T19:05:24.770588269Z"
     description: A Helm chart for Azure Pipelines Agent
     digest: 7145afa49b3ef0603d2ea6b42c905c0259fb6309b77ba8a1e52b9bc5da8a769e
     home: https://github.com/emberstack/docker-azure-pipelines-agent
@@ -113,7 +113,7 @@ entries:
     version: 1.0.26
   - apiVersion: v2
     appVersion: 1.0.3
-    created: "2020-01-12T18:48:00.454638661Z"
+    created: "2020-01-12T19:05:24.770003568Z"
     description: A Helm chart for Azure Pipelines Agent
     digest: b73aa81e3d00d3fa2cc0c3c9133cd4f7917459c693f969c2217d787d565cc784
     home: https://github.com/emberstack/docker-azure-pipelines-agent
@@ -135,7 +135,7 @@ entries:
     version: 1.0.18
   reflector:
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.466589369Z"
+    created: "2020-01-12T19:05:24.781087087Z"
     description: A Helm chart to deploy Reflector
     digest: ff5cda18fc339f5e5a80be0e6041b8437a2be5e4ae3e950405dda1f0c4fa674c
     home: https://github.com/EmberStack/kubernetes-reflector
@@ -158,7 +158,7 @@ entries:
     - charts/reflector-3.19315.2.tgz
     version: 3.19315.2
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.464529885Z"
+    created: "2020-01-12T19:05:24.778969983Z"
     description: A Helm chart to deploy Reflector
     digest: c08389ade084a2dab6ee2903234bc6bc1a871da9db92d3bad9ef4659c0decfca
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -181,7 +181,7 @@ entries:
     - charts/reflector-3.19304.10.tgz
     version: 3.19304.10
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.465578877Z"
+    created: "2020-01-12T19:05:24.780605986Z"
     description: A Helm chart to deploy Reflector
     digest: dbff894b5ccc88b29e712277fa322053cbae245c1b8c37aadb8895572572fefe
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -204,7 +204,7 @@ entries:
     - charts/reflector-3.19304.7.tgz
     version: 3.19304.7
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.465042481Z"
+    created: "2020-01-12T19:05:24.779744385Z"
     description: A Helm chart to deploy Reflector
     digest: 51344ffb2ab0292940a5fe3eab72c865cd5f25b5aa77c5f1cb42a794ff99b1ee
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -227,7 +227,7 @@ entries:
     - charts/reflector-3.19304.3.tgz
     version: 3.19304.3
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.463979989Z"
+    created: "2020-01-12T19:05:24.777844581Z"
     description: A Helm chart to deploy Reflector
     digest: 4e9c11cb8df03202133418b942add85dd5d9e896a3b386804b64e1e0028712ca
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -250,7 +250,7 @@ entries:
     - charts/reflector-2.19197.5.tgz
     version: 2.19197.5
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.463210995Z"
+    created: "2020-01-12T19:05:24.77685778Z"
     description: A Helm chart to deploy Reflector
     digest: f12af0cb7c5e3a6c5ff7ad7ad6dec8fb6eb37bf39a969f03382c387c2fa1199e
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -273,7 +273,7 @@ entries:
     - charts/reflector-2.19193.2.tgz
     version: 2.19193.2
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.462376002Z"
+    created: "2020-01-12T19:05:24.776357679Z"
     description: A Helm chart to deploy Reflector
     digest: 343279aad2d3d201450d43909c8012c437b3a535cd66c967aeb0c96b656c09fe
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -296,7 +296,7 @@ entries:
     - charts/reflector-2.19191.6.tgz
     version: 2.19191.6
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.461874105Z"
+    created: "2020-01-12T19:05:24.775826278Z"
     description: A Helm chart to deploy Reflector
     digest: c56748a3adfe2c73ac60334b240ba58c3221336b25c3245bd2bcac84943b402c
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -319,7 +319,7 @@ entries:
     - charts/reflector-2.19189.6.tgz
     version: 2.19189.6
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.46129551Z"
+    created: "2020-01-12T19:05:24.775291677Z"
     description: A Helm chart to deploy Reflector
     digest: f8e3e1d5d6327d0073aba483c7f9f0113eb758756882dded8a06bb599b7a148f
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -342,7 +342,7 @@ entries:
     - charts/reflector-2.19189.3.tgz
     version: 2.19189.3
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.460821914Z"
+    created: "2020-01-12T19:05:24.774747676Z"
     description: A Helm chart to deploy Reflector
     digest: f5b81f2b2ac1f7943c02448aef6945dd0033039a46f872c0803100120c486bde
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -365,7 +365,7 @@ entries:
     - charts/reflector-2.19187.7.tgz
     version: 2.19187.7
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.460249718Z"
+    created: "2020-01-12T19:05:24.774144575Z"
     description: A Helm chart to deploy Reflector
     digest: bbb43b2bec8c6275657bdf73008b2a56ce87ac587c0dc5d7d06ebfe1937ad695
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -388,7 +388,7 @@ entries:
     - charts/reflector-2.19170.25.tgz
     version: 2.19170.25
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.459777622Z"
+    created: "2020-01-12T19:05:24.773689174Z"
     description: A Helm chart to deploy Reflector
     digest: 5d69b78ac0f15844122e19021cce5ee4f1ecca8bcbb76e1fe8a87f1482da944d
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -411,7 +411,7 @@ entries:
     - charts/reflector-2.19140.3.tgz
     version: 2.19140.3
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.459190226Z"
+    created: "2020-01-12T19:05:24.773104873Z"
     description: A Helm chart to deploy Reflector
     digest: d4dd699f29d1f57cede759aa44540a38548b35e1def3528ad0acfad2fb3947be
     home: https://github.com/EmberStack/ES.Kubernetes.Reflector
@@ -435,8 +435,30 @@ entries:
     version: 2.19120.6
   sftp:
   - apiVersion: v1
+    appVersion: 2.0.3
+    created: "2020-01-12T19:05:24.7891098Z"
+    description: A Helm chart to deploy SFTP
+    digest: 7ece43ccb63428ddae156ee0ee1963aff7d7b802b4264cb193c49c1b616f23e8
+    home: https://github.com/EmberStack/docker-sftp
+    icon: https://raw.githubusercontent.com/EmberStack/CDN/master/Projects/docker-sftp/openssh.png
+    keywords:
+    - sftp
+    - openssh
+    - files
+    - storage
+    - ftp
+    maintainers:
+    - email: helm-charts@emberstack.com
+      name: winromulus
+    name: sftp
+    sources:
+    - https://github.com/EmberStack/docker-sftp
+    urls:
+    - charts/sftp-2.0.3.tgz
+    version: 2.0.3
+  - apiVersion: v1
     appVersion: 2.0.1
-    created: "2020-01-12T18:48:00.475916597Z"
+    created: "2020-01-12T19:05:24.788458199Z"
     description: A Helm chart to deploy SFTP
     digest: 9acaf7afcb17045c1268177d825062d4f0596ed1eeb1b924969c5e251d0b1954
     home: https://github.com/EmberStack/docker-sftp
@@ -457,7 +479,7 @@ entries:
     - charts/sftp-2.0.1.tgz
     version: 2.0.1
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.475396001Z"
+    created: "2020-01-12T19:05:24.787951798Z"
     description: A Helm chart to deploy SFTP
     digest: 73d9fa5ab33feb7c1326ed55766f2033549c1bfde0cdfe80dbf97e54f848e64f
     home: https://github.com/EmberStack/docker-sftp
@@ -478,7 +500,7 @@ entries:
     - charts/sftp-1.19323.3.tgz
     version: 1.19323.3
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.474883105Z"
+    created: "2020-01-12T19:05:24.787473098Z"
     description: A Helm chart to deploy SFTP
     digest: 5f993210a9738c26705eb3c4187e1d42ccbdb576629a0214d812eba7c9ec8b03
     home: https://github.com/EmberStack/docker-sftp
@@ -499,7 +521,7 @@ entries:
     - charts/sftp-1.19323.2.tgz
     version: 1.19323.2
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.472102526Z"
+    created: "2020-01-12T19:05:24.785116994Z"
     description: A Helm chart to deploy SFTP
     digest: 1f4c9fcc40f9b2db8fa5c71ee1aa79244de15eb73b6167c54a5be5e766674c74
     home: https://github.com/EmberStack/docker-sftp
@@ -520,7 +542,7 @@ entries:
     - charts/sftp-1.19316.11.tgz
     version: 1.19316.11
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.47160383Z"
+    created: "2020-01-12T19:05:24.784636593Z"
     description: A Helm chart to deploy SFTP
     digest: 7066e05e80ce00805e8dd1865a79e972525bea5705becff29bfe9e2bf85fa105
     home: https://github.com/EmberStack/docker-sftp
@@ -541,7 +563,7 @@ entries:
     - charts/sftp-1.19316.10.tgz
     version: 1.19316.10
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.47425291Z"
+    created: "2020-01-12T19:05:24.786942697Z"
     description: A Helm chart to deploy SFTP
     digest: efabcd8f00a00896b42eeaee5a0233beef039e81657b0e369e00746cab3f8a7d
     home: https://github.com/EmberStack/docker-sftp
@@ -562,7 +584,7 @@ entries:
     - charts/sftp-1.19316.8.tgz
     version: 1.19316.8
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.473666414Z"
+    created: "2020-01-12T19:05:24.786377396Z"
     description: A Helm chart to deploy SFTP
     digest: 7e100f34dd6f13e766c48a004518a91024d6379f0434966456942432eba0090a
     home: https://github.com/EmberStack/docker-sftp
@@ -583,7 +605,7 @@ entries:
     - charts/sftp-1.19316.7.tgz
     version: 1.19316.7
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.472838221Z"
+    created: "2020-01-12T19:05:24.785732295Z"
     description: A Helm chart to deploy SFTP
     digest: a32ada0955946e1e0ad0ccfcc964d158a89a15f525b54728a74916cb35afdc4d
     home: https://github.com/EmberStack/docker-sftp
@@ -604,7 +626,7 @@ entries:
     - charts/sftp-1.19316.6.tgz
     version: 1.19316.6
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.471065534Z"
+    created: "2020-01-12T19:05:24.784072992Z"
     description: A Helm chart to deploy SFTP
     digest: 28776dd8b66ca03c0162b6b8c687af68995581f554b522dd44bff33cf8418d82
     home: https://github.com/EmberStack/docker-sftp
@@ -625,7 +647,7 @@ entries:
     - charts/sftp-1.19315.15.tgz
     version: 1.19315.15
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.469716245Z"
+    created: "2020-01-12T19:05:24.783579391Z"
     description: A Helm chart to deploy SFTP
     digest: 7687b70581de4d61c150cf43ebd3978c1a0da2d2d325927977923a27e33c6fd9
     home: https://github.com/EmberStack/docker-sftp
@@ -646,7 +668,7 @@ entries:
     - charts/sftp-1.19315.13.tgz
     version: 1.19315.13
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.468973251Z"
+    created: "2020-01-12T19:05:24.78295529Z"
     description: A Helm chart to deploy SFTP
     digest: ca448174110b9ec92fba92c6e8651ce429d990410f182a8e7a9997e402bd0fc8
     home: https://github.com/EmberStack/docker-sftp
@@ -667,7 +689,7 @@ entries:
     - charts/sftp-1.19315.12.tgz
     version: 1.19315.12
   - apiVersion: v1
-    created: "2020-01-12T18:48:00.467984358Z"
+    created: "2020-01-12T19:05:24.782379189Z"
     description: A Helm chart to deploy SFTP
     digest: 04dad03f9bb3c74aefc660ccd8c7670e61a1622863c5b9d3196632eb30f5d02d
     home: https://github.com/EmberStack/docker-sftp
@@ -689,7 +711,7 @@ entries:
     version: 1.19315.10
   - apiVersion: v1
     appVersion: 1.1.8
-    created: "2020-01-12T18:48:00.467096265Z"
+    created: "2020-01-12T19:05:24.781653088Z"
     description: A Helm chart to deploy SFTP
     digest: 285f7579e5e53a3e9bc006c3cb9917d7839985a779d1723a1793987403bde75a
     home: https://github.com/EmberStack/docker-sftp
@@ -709,4 +731,4 @@ entries:
     urls:
     - charts/sftp-1.1.8.tgz
     version: 1.1.8
-generated: "2020-01-12T18:48:00.453941467Z"
+generated: "2020-01-12T19:05:24.769402367Z"
