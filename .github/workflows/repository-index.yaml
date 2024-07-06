@@ -22,6 +22,7 @@ jobs:
 
       - name: github - publish - index
         run: |
+          git pull
           git config user.name "Romeo Dumitrescu"
           git config user.email "5931333+winromulus@users.noreply.github.com"
           git add .
