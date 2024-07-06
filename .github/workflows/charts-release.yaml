@@ -17,7 +17,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: Package Helm Charts
+      - name: helm - package
         run: |
           for dir in src/charts/*; do
             if [ -d "$dir" ]; then
@@ -28,3 +28,13 @@ jobs:
               echo "Packaged $chart_name to $dest_dir"
             fi
           done
+
+
+      - name: github - publish - charts
+        run: |
+          git config user.name "Romeo Dumitrescu"
+          git config user.email "5931333+winromulus@users.noreply.github.com"
+          git add .
+          git status
+          git commit -m "Published charts"
+          git push
