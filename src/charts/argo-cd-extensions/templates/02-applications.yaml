@@ -1,0 +1,34 @@
+{{- range .Values.applications }}
+{{- $item := . -}}
+{{- if $item.enabled }}
+{{- $fullName := $item.fullnameOverride | default (print (include "argo-cd-extensions.fullname" $) "-" $item.name) }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+spec:
+  project: {{ $item.project | default "default" }}
+  sources:
+    {{- $item.sources | toYaml | nindent 4 }}
+  destination:
+    server: {{- if .destination }} {{ $item.destination.server | default "https://kubernetes.default.svc" }} {{- else }} "https://kubernetes.default.svc" {{- end }}
+    namespace: {{- if .destination }} {{ $item.destination.namespace | default $.Release.Namespace }} {{- else }} {{ $.Release.Namespace }} {{- end }}
+  {{- if $item.ignoreDifferences }}
+  ignoreDifferences:
+    {{- $item.ignoreDifferences | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.info }}
+  info:
+    {{- $item.info | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ $item.revisionHistoryLimit }}
+  {{- end }}
+  {{- if $item.syncPolicy }}
+  syncPolicy:
+    {{- $item.syncPolicy | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

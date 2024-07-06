@@ -1,0 +1,97 @@
+{{- range .Values.certificates }}
+{{- $item := . -}}
+{{- if $item.enabled }}
+{{- $fullName := $item.fullnameOverride | default (print (include "cert-manager-extensions.fullname" $) "-" $item.name) }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+spec:
+  secretName: {{ $item.secretName }}
+  issuerRef:
+    name: {{ $item.issuerRef.name }}
+    {{- if $item.issuerRef.group }}
+    group: {{ $item.issuerRef.group }}
+    {{- end }}
+    {{- if $item.issuerRef.kind }}
+    kind: {{ $item.issuerRef.kind }}
+    {{- end }}
+  {{- if $item.duration }}
+  duration: {{ $item.duration }}
+  {{- end }}
+  {{- if $item.renewBefore }}
+  renewBefore: {{ $item.renewBefore }}
+  {{- end }}
+  {{- if $item.commonName }}
+  commonName: {{ $item.commonName }}
+  {{- end }}
+  {{- if $item.dnsNames }}
+  dnsNames:
+    {{- toYaml $item.dnsNames | nindent 4 }}
+  {{- end }}
+  {{- if $item.ipAddresses }}
+  ipAddresses:
+    {{- toYaml $item.ipAddresses | nindent 4 }}
+  {{- end }}
+  {{- if $item.emailAddresses }}
+  emailAddresses:
+    {{- toYaml $item.emailAddresses | nindent 4 }}
+  {{- end }}
+  {{- if $item.uriSans }}
+  uris:
+    {{- toYaml $item.uriSans | nindent 4 }}
+  {{- end }}
+  {{- if $item.subject }}
+  subject:
+    {{- toYaml $item.subject | nindent 4 }}
+  {{- end }}
+  {{- if $item.keystores }}
+  keystores:
+    {{- if $item.keystores.jks }}
+    jks:
+      create: {{ $item.keystores.jks.create }}
+      passwordSecretRef:
+        name: {{ $item.keystores.jks.passwordSecretRef.name }}
+        {{- if $item.keystores.jks.passwordSecretRef.key }}
+        key: {{ $item.keystores.jks.passwordSecretRef.key }}
+        {{- end }}
+      {{- if $item.keystores.jks.alias }}
+      alias: {{ $item.keystores.jks.alias }}
+      {{- end }}
+    {{- end }}
+    {{- if $item.keystores.pkcs12 }}
+    pkcs12:
+      create: {{ $item.keystores.pkcs12.create }}
+      passwordSecretRef:
+        name: {{ $item.keystores.pkcs12.passwordSecretRef.name }}
+        {{- if $item.keystores.pkcs12.passwordSecretRef.key }}
+        key: {{ $item.keystores.pkcs12.passwordSecretRef.key }}
+        {{- end }}
+      {{- if $item.keystores.pkcs12.profile }}
+      profile: {{ $item.keystores.pkcs12.profile }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.privateKey }}
+  privateKey:
+    {{- if $item.privateKey.algorithm }}
+    algorithm: {{ $item.privateKey.algorithm }}
+    {{- end }}
+    {{- if $item.privateKey.encoding }}
+    encoding: {{ $item.privateKey.encoding }}
+    {{- end }}
+    {{- if $item.privateKey.size }}
+    size: {{ $item.privateKey.size }}
+    {{- end }}
+    {{- if $item.privateKey.rotationPolicy }}
+    rotationPolicy: {{ $item.privateKey.rotationPolicy }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.usages }}
+  usages:
+    {{- toYaml $item.usages | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

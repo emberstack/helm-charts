@@ -1,0 +1,60 @@
+{{- range .Values.appProjects }}
+{{- $item := . -}}
+{{- if $item.enabled }}
+{{- $fullName := $item.fullnameOverride | default (print (include "argo-cd-extensions.fullname" $) "-" $item.name) }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+spec:
+  {{- if $item.description }}
+  description: {{ $item.description }}
+  {{- end }}
+  {{- if $item.clusterResourceWhitelist }}
+  clusterResourceWhitelist:
+    {{- $item.clusterResourceWhitelist | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.clusterResourceBlacklist }}
+  clusterResourceBlacklist:
+    {{- $item.clusterResourceBlacklist | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.namespaceResourceWhitelist }}
+  namespaceResourceWhitelist:
+    {{- $item.namespaceResourceWhitelist | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.namespaceResourceBlacklist }}
+  namespaceResourceBlacklist:
+    {{- $item.namespaceResourceBlacklist | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.destinations }}
+  destinations:
+    {{- $item.destinations | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.sourceRepos }}
+  sourceRepos:
+    {{- $item.sourceRepos | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.sourceNamespaces }}
+  sourceNamespaces:
+    {{- $item.sourceNamespaces | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.orphanedResources }}
+  orphanedResources:
+    {{ $item.orphanedResources | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.syncWindows }}
+  syncWindows:
+    {{- $item.syncWindows | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.roles }}
+  roles:
+    {{- $item.roles | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $item.signatureKeys }}
+  signatureKeys:
+    {{- $item.signatureKeys | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

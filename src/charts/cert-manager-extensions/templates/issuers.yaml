@@ -1,0 +1,107 @@
+{{- range .Values.issuers }}
+{{- $item := . -}}
+{{- if $item.enabled }}
+{{- $fullName := $item.fullnameOverride | default (print (include "cert-manager-extensions.fullname" $) "-" $item.name) }}
+{{- $privateKeySecretRefName := print $fullName "-private-key" }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $fullName}}
+  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+spec:
+  {{- if $item.acme }}
+  acme:
+    {{- if $item.acme.email }}
+    email: {{ $item.acme.email }}
+    {{- end }}
+    server: {{ $item.acme.server | default "https://acme-v02.api.letsencrypt.org/directory"}}
+    privateKeySecretRef:
+      name: {{ if $item.acme.privateKeySecretRef }}{{ $item.acme.privateKeySecretRef.name | default $privateKeySecretRefName }}{{ else }}{{ $privateKeySecretRefName }}{{ end }}
+      {{- if and $item.acme.privateKeySecretRef $item.acme.privateKeySecretRef.key }}
+      key: {{ $item.acme.privateKeySecretRef.key }}
+      {{- end }}
+    {{- if $item.acme.solvers }}
+    solvers:
+      {{- $item.acme.solvers | toYaml | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.ca }}
+  ca:
+    {{- if $item.ca.secretName }}
+    secretName: {{ $item.ca.secretName }}
+    {{- end }}
+    {{- if $item.ca.crlDistributionPoints }}
+    crlDistributionPoints:
+      {{- $item.ca.crlDistributionPoints | toYaml | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.selfSigned }}
+  selfSigned:
+    {{- if $item.selfSigned.crlDistributionPoints }}
+    crlDistributionPoints:
+      {{- $item.selfSigned.crlDistributionPoints | toYaml | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.vault }}
+  vault:
+    server: {{ $item.vault.server }}
+    {{- if $item.vault.path }}
+    path: {{ $item.vault.path }}
+    {{- end }}
+    auth:
+      {{- if $item.vault.auth.tokenSecretRef }}
+      tokenSecretRef:
+        name: {{ $item.vault.auth.tokenSecretRef.name }}
+        {{- if $item.vault.auth.tokenSecretRef.key }}
+        key: {{ $item.vault.auth.tokenSecretRef.key }}
+        {{- end }}
+      {{- end }}
+      {{- if $item.vault.auth.appRole }}
+      appRole:
+        path: {{ $item.vault.auth.appRole.path }}
+        roleId: {{ $item.vault.auth.appRole.roleId }}
+        secretRef:
+          name: {{ $item.vault.auth.appRole.secretRef.name }}
+          {{- if $item.vault.auth.appRole.secretRef.key }}
+          key: {{ $item.vault.auth.appRole.secretRef.key }}
+          {{- end }}
+      {{- end }}
+      {{- if $item.vault.auth.kubernetes }}
+      kubernetes:
+        role: {{ $item.vault.auth.kubernetes.role }}
+        secretRef:
+          name: {{ $item.vault.auth.kubernetes.secretRef.name }}
+          {{- if $item.vault.auth.kubernetes.secretRef.key }}
+          key: {{ $item.vault.auth.kubernetes.secretRef.key }}
+          {{- end }}
+        {{- if $item.vault.auth.kubernetes.mountPath }}
+        mountPath: {{ $item.vault.auth.kubernetes.mountPath }}
+        {{- end }}
+      {{- end }}
+  {{- end }}
+  {{- if $item.venafi }}
+  venafi:
+    {{- if $item.venafi.zone }}
+    zone: {{ $item.venafi.zone }}
+    {{- end }}
+    {{- if $item.venafi.tpp }}
+    tpp:
+      url: {{ $item.venafi.tpp.url }}
+      credentialsRef:
+        name: {{ $item.venafi.tpp.credentialsRef.name }}
+        {{- if $item.venafi.tpp.credentialsRef.key }}
+        key: {{ $item.venafi.tpp.credentialsRef.key }}
+        {{- end }}
+    {{- end }}
+    {{- if $item.venafi.cloud }}
+    cloud:
+      apiTokenSecretRef:
+        name: {{ $item.venafi.cloud.apiTokenSecretRef.name }}
+        {{- if $item.venafi.cloud.apiTokenSecretRef.key }}
+        key: {{ $item.venafi.cloud.apiTokenSecretRef.key }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
