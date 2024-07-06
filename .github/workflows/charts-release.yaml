@@ -1,4 +1,4 @@
-name: repository index
+name: charts release
 
 on:
   workflow_dispatch:
@@ -9,9 +9,9 @@ on:
       - 'src/charts/**'
       
 jobs:
-  deploy:
+  release:
     runs-on: ubuntu-latest
-    name: Charts Deploy
+    name: Charts Release
 
     steps:
       - name: checkout
