@@ -1,0 +1,38 @@
+name: repository index
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'repository/**'
+      
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    name: Repository Index
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: helm - repo - index
+        run: |
+          helm repo index repository --url "repository"
+          helm repo index --merge repository/index.yaml .
+          rm repository/index.yaml
+
+          cat index.yaml
+
+      - name: github - publish - index
+        run: |
+          git config user.name "Romeo Dumitrescu"
+          git config user.email "5931333+winromulus@users.noreply.github.com"
+          git add .
+          git status
+          git commit -m "Repository index updated"
+          git push
+
+
+
