@@ -40,4 +40,4 @@ jobs:
           git push
 
   index:
-    uses: ./.github/workflows/repository-index.yml
+    uses: ./.github/workflows/repository-index.yaml

@@ -9,5 +9,5 @@ on:
       
 jobs:
   index:
-    uses: ./.github/workflows/repository-index.yml
+    uses: ./.github/workflows/repository-index.yaml
 
