@@ -37,4 +37,4 @@ jobs:
           git add .
           git status
           git commit -m "Published charts"
-          git push
+          git push "https://x-access-token:${{ secrets.ES_GITHUB_PAT }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref }}
