@@ -1,0 +1,13 @@
+name: repository index
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'repository/**'
+      
+jobs:
+  index:
+    uses: ./.github/workflows/repository-index.yml
+
