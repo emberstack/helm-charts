@@ -40,4 +40,5 @@ jobs:
           git push
 
   index:
+    needs: release
     uses: ./.github/workflows/repository-index.yaml
