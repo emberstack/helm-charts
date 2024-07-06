@@ -1,0 +1,19 @@
+apiVersion: v2
+name: external-dns-extensions
+description: A Helm chart for external-dns extensions
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+
+
+icon: https://raw.githubusercontent.com/emberstack/CDN/main/projects/helm-charts/generic/emberstack_icon.png
+keywords:
+- external-dns
+- dns
+- DNSEndpoint
+home: https://github.com/emberstack/helm-charts
+sources:
+- https://github.com/emberstack/helm-charts
+maintainers:
+- name: winromulus
+  email: helm-charts@emberstack.com

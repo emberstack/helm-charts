@@ -1,0 +1,10 @@
+nameOverride: ""
+fullnameOverride: ""
+
+dnsEndpoints:
+  - name: "test-endpoint"
+    enabled: true
+    endpoints:
+      - dnsName: "test-endpoint.example.com"
+        recordType: "A"
+        targets: [8.8.8.8]
