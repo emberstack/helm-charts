@@ -1,0 +1,30 @@
+name: repository index
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/charts/**'
+      
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Charts Deploy
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Package Helm Charts
+        run: |
+          for dir in src/charts/*; do
+            if [ -d "$dir" ]; then
+              chart_name=$(basename "$dir")
+              dest_dir="repository/$chart_name"
+              mkdir -p "$dest_dir"
+              helm package "$dir" -d "$dest_dir"
+              echo "Packaged $chart_name to $dest_dir"
+            fi
+          done
