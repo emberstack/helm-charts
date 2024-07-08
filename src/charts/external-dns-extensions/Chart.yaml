@@ -15,5 +15,5 @@ home: https://github.com/emberstack/helm-charts
 sources:
 - https://github.com/emberstack/helm-charts
 maintainers:
-- name: winromulus
+- name: emberstack
   email: helm-charts@emberstack.com
