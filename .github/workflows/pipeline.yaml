@@ -158,7 +158,7 @@ jobs:
 
   release:
     name: release
-    if: ${{ needs.discovery.outputs.release == 'true' }}
+    if: ${{ needs.discovery.outputs.release == 'true' && github.ref == 'refs/heads/main' }}
     needs: [discovery, build]
     runs-on: ubuntu-latest
     env:
