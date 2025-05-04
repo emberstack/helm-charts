@@ -213,7 +213,7 @@ jobs:
           generate_release_notes: true
           token: ${{ secrets.ES_GITHUB_PAT }}
 
-      - name: Repository Dispatch
+      - name: github - repository-dispatch - release
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.ES_GITHUB_PAT }}
