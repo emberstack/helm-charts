@@ -1,0 +1,223 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - "**" # Matches all branches
+  pull_request:
+    branches:
+      - "**" # Matches all branches
+
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: "Forces a build even if no changes are detected"
+        required: true
+        default: "false"
+      force_release:
+        description: "Forces a release even if no changes are detected"
+        required: true
+        default: "false"
+
+concurrency:
+  group: pipeline-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  helm_chart_repository: "ghcr.io/emberstack/helm-charts"
+  helm_chart_repository_protocol: "oci://"
+
+jobs:
+  discovery:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      pathsFilter_src: ${{ steps.pathsFilter.outputs.src }}
+      gitVersion_SemVer: ${{ steps.gitversion.outputs.GitVersion_SemVer }}
+      gitVersion_AssemblySemFileVer: ${{ steps.gitversion.outputs.GitVersion_AssemblySemFileVer }}
+      build: ${{ steps.evaluate_build.outputs.result }}
+      build_configuration: ${{ steps.evaluate_build_configuration.outputs.result }}
+      release: ${{ steps.evaluate_release.outputs.result }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: tools - dotnet - install
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.x"
+
+      - name: tools - gitversion - install
+        uses: gittools/actions/gitversion/setup@v3.2.1
+        with:
+          versionSpec: "5.x"
+          preferLatestVersion: true
+
+      - name: gitversion - execute
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3.2.1
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yaml
+
+      - name: tools - detect changes
+        id: pathsFilter
+        uses: dorny/paths-filter@v3
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            src:
+              - '*.sln'
+              - '*.slnx'
+              - '*.props'
+              - 'src/**'
+            build:
+              - '*.sln'
+              - '*.slnx'
+              - '*.props'
+              - 'src/**'
+              - 'tests/**'
+              - 'playground/**'
+
+      - name: evaluate - build
+        id: evaluate_build
+        run: |
+          if [ "${{ steps.pathsFilter.outputs.build }}" = "true" ] || \
+             [ "${{ github.event.inputs.force_build }}" = "true" ] || \
+             [ "${{ github.event.inputs.force_release }}" = "true" ]; then
+            result=true
+          else
+            result=false
+          fi
+          echo "result=$result" >> $GITHUB_OUTPUT
+
+      - name: evaluate - build_configuration
+        id: evaluate_build_configuration
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            result=Release
+          else
+            result=Debug
+          fi
+          echo "result=$result" >> $GITHUB_OUTPUT
+
+      - name: evaluate - release
+        id: evaluate_release
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || \
+             [ "${{ github.event.inputs.force_release }}" = "true" ]; then
+            result=true
+          else
+            result=false
+          fi
+          echo "result=$result" >> $GITHUB_OUTPUT
+
+  build:
+    name: build
+    if: ${{ needs.discovery.outputs.build == 'true' }}
+    needs: [discovery]
+    runs-on: ubuntu-latest
+    env:
+      build: ${{ needs.discovery.outputs.build }}
+      build_configuration: ${{ needs.discovery.outputs.build_configuration }}
+      gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
+      gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: artifacts - prepare directories
+        run: |
+          mkdir -p .artifacts/helm
+          mkdir -p .artifacts/helm/repository
+          mkdir -p .artifacts/kubectl
+
+      - name: tools - helm - install
+        uses: azure/setup-helm@v4
+
+      - name: helm - package
+        run: |
+          for dir in src/charts/*; do
+            [ -d "$dir" ] || continue
+            helm_chart=$(basename "$dir")
+            dest_dir=".artifacts/helm"
+            mkdir -p "$dest_dir"
+            helm package "$dir" --destination "$dest_dir" --version ${{ env.gitVersion_SemVer }} --app-version ${{ env.gitVersion_SemVer }}
+            echo "Packaged $helm_chart to $dest_dir"
+          done
+
+      - name: artifacts - helm - upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-helm-${{env.gitVersion_SemVer}}
+          path: .artifacts/helm
+
+  release:
+    name: release
+    if: ${{ needs.discovery.outputs.release == 'true' }}
+    needs: [discovery, build]
+    runs-on: ubuntu-latest
+    env:
+      gitVersion_SemVer: ${{ needs.discovery.outputs.gitVersion_SemVer }}
+      gitVersion_AssemblySemFileVer: ${{ needs.discovery.outputs.gitVersion_AssemblySemFileVer }}
+    steps:
+
+      - name: artifacts - helm - download
+        uses: actions/download-artifact@v4
+        with:
+          name: artifacts-helm-${{env.gitVersion_SemVer}}
+          path: .artifacts/helm
+
+      - name: tools - helm - install
+        uses: azure/setup-helm@v4
+
+      - name: tools - helm - login - ghcr.io
+        run: echo "${{ secrets.ES_GITHUB_PAT }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: tools - oras - install
+        uses: oras-project/setup-oras@v1
+
+      - name: tools - oras - login - ghcr.io
+        run: echo "${{ secrets.ES_GITHUB_PAT }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Find and inspect all .tgz Helm charts in .artifacts/helm
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Searching for .tgz Helm charts in '.artifacts/helm/'..."
+          find .artifacts/helm -type f -name '*.tgz' | while read -r chart; do
+            echo "📦 Chart file: $chart"
+
+            # Extract chart metadata
+            metadata=$(helm show chart "$chart")
+            name=$(echo "$metadata" | awk '/^name:/ { print $2 }')
+            version=$(echo "$metadata" | awk '/^version:/ { print $2 }')
+
+            echo "   → Name: $name"
+            echo "   → Version: $version"
+
+            helm push "$chart" ${{ env.helm_chart_repository_protocol }}${{ env.helm_chart_repository }}
+          done
+
+      - name: github - release - create
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: ${{ github.repository }}
+          name: v${{ env.gitVersion_SemVer }}
+          tag_name: v${{ env.gitVersion_SemVer }}
+          body: The release process is automated.
+          generate_release_notes: true
+          token: ${{ secrets.ES_GITHUB_PAT }}
+
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.ES_GITHUB_PAT }}
+          repository: emberstack/helm-charts
+          event-type: release
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+

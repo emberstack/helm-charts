@@ -1,0 +1,124 @@
+name: Helm Charts Index
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [release]
+
+
+concurrency:
+  group: helm-charts-index
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: tools - helm - install
+        uses: azure/setup-helm@v4
+
+      - name: tools - helm - login - ghcr.io
+        run: echo "${{ secrets.ES_GITHUB_PAT }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: tools - oras - install
+        uses: oras-project/setup-oras@v1
+
+      - name: tools - oras - login - ghcr.io
+        run: echo "${{ secrets.ES_GITHUB_PAT }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: helm - pull charts
+        run: |
+          set -euo pipefail
+
+          echo "📦 Fetching chart list from GitHub API..."
+          charts=$(curl -s -H "Authorization: Bearer ${{ secrets.ES_GITHUB_PAT }}" \
+                         -H "Accept: application/vnd.github+json" \
+                         https://api.github.com/orgs/${{ github.repository_owner }}/packages?package_type=container \
+                   | jq -r '.[] | select(.name | startswith("helm-charts/")) | .name')
+
+          if [[ -z "$charts" ]]; then
+            echo "❌ No charts found under helm-charts/"
+            exit 1
+          fi
+
+          for chart in $charts; do
+            echo "🔽 Chart: $chart"
+            full_ref="ghcr.io/${{ github.repository_owner }}/$chart"
+
+            # Get all tags (versions) using ORAS
+            tags=$(oras repo tags "$full_ref" 2>/dev/null || true)
+
+            if [[ -z "$tags" ]]; then
+              echo "   ⚠️ No tags found for $full_ref"
+              continue
+            fi
+
+            echo "$tags" | sort -V | while read -r tag; do
+              [[ -z "$tag" ]] && continue
+              echo "   → Tag: $tag"
+              # Strip prefix to get the actual chart name
+              helm_chart="${chart#helm-charts/}"
+
+              echo "   📥 Pulling chart: $helm_chart, version: $tag"
+              mkdir -p .artifacts/helm/repository/$helm_chart
+              helm pull oci://ghcr.io/${{ github.repository_owner }}/helm-charts/$helm_chart \
+                --version "$tag" \
+                --destination .artifacts/helm/repository/$helm_chart
+            done
+          done
+
+      - name: helm - repo - index
+        run: |
+          cd .artifacts/helm
+          helm repo index repository --url "repository"
+          helm repo index --merge repository/index.yaml .
+          rm repository/index.yaml
+
+      - name: helm - fix - replace icons
+        run: |
+          # Path to the file to modify
+          target_file=".artifacts/helm/index.yaml"
+          sed -i 's|icon: https://raw.githubusercontent.com/emberstack/CDN[^ ]*|icon: https://raw.githubusercontent.com/emberstack/helm-charts/main/assets/helm_icon_generic.png|gI' "$target_file"
+
+      - name: Generate index.html redirect
+        run: |
+          mkdir -p .artifacts/helm
+
+          printf '%s\n' \
+          '<!DOCTYPE html>' \
+          '<html lang="en">' \
+          '  <head>' \
+          '    <meta http-equiv="refresh" content="0; url=https://github.com/emberstack/helm-charts" />' \
+          '    <meta name="robots" content="noindex">' \
+          '    <title>Redirecting...</title>' \
+          '  </head>' \
+          '  <body>' \
+          '    <p>If you are not redirected automatically, <a href="https://github.com/emberstack/helm-charts">click here</a>.</p>' \
+          '  </body>' \
+          '</html>' > .artifacts/helm/index.html
+
+      - name: artifacthub - generate artifacthub-repo.yml
+        run: |
+          mkdir -p .artifacts/helm
+          printf '%s\n' 'repositoryID: a16c06b8-a82e-4411-a741-07fd9a83ef9a' > .artifacts/helm/artifacthub-repo.yml
+
+      - name: artifacts - upload github-pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .artifacts/helm
+
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: github pages - deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
