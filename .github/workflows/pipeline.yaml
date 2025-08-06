@@ -167,7 +167,7 @@ jobs:
     steps:
 
       - name: artifacts - helm - download
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: artifacts-helm-${{env.gitVersion_SemVer}}
           path: .artifacts/helm
