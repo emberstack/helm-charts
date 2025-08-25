@@ -104,7 +104,7 @@ jobs:
           printf '%s\n' 'repositoryID: a16c06b8-a82e-4411-a741-07fd9a83ef9a' > .artifacts/helm/artifacthub-repo.yml
 
       - name: artifacts - upload github-pages
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: .artifacts/helm
 
