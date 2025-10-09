@@ -24,6 +24,11 @@ spec:
     {{- if $item.acme.email }}
     email: {{ $item.acme.email }}
     {{- end }}
+    {{- if $item.acme.profile }}
+    # Profile allows requesting a certificate profile from the ACME server
+    # Supported profiles are listed by the server's ACME directory URL
+    profile: {{ $item.acme.profile }}
+    {{- end }}
     server: {{ $item.acme.server | default "https://acme-v02.api.letsencrypt.org/directory"}}
     privateKeySecretRef:
       name: {{ if $item.acme.privateKeySecretRef }}{{ $item.acme.privateKeySecretRef.name | default $privateKeySecretRefName }}{{ else }}{{ $privateKeySecretRefName }}{{ end }}
