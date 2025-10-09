@@ -8,7 +8,6 @@ apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: {{ $fullName}}
-  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
   labels:
     {{- include "cert-manager-extensions.labels" $ | nindent 4 }}
     {{- with $item.labels }}
@@ -30,6 +29,47 @@ spec:
     profile: {{ $item.acme.profile }}
     {{- end }}
     server: {{ $item.acme.server | default "https://acme-v02.api.letsencrypt.org/directory"}}
+    {{- if $item.acme.caBundle }}
+    # Base64-encoded bundle of PEM CAs to validate the ACME server certificate
+    caBundle: {{ $item.acme.caBundle }}
+    {{- end }}
+    {{- if hasKey $item.acme "skipTLSVerify" }}
+    # INSECURE: Skip TLS certificate validation
+    skipTLSVerify: {{ $item.acme.skipTLSVerify }}
+    {{- end }}
+    {{- if $item.acme.preferredChain }}
+    # Preferred certificate chain (e.g., "ISRG Root X1" for Let's Encrypt)
+    preferredChain: {{ $item.acme.preferredChain }}
+    {{- end }}
+    {{- if hasKey $item.acme "disableAccountKeyGeneration" }}
+    # Disable automatic ACME account key generation
+    disableAccountKeyGeneration: {{ $item.acme.disableAccountKeyGeneration }}
+    {{- end }}
+    {{- if hasKey $item.acme "enableDurationFeature" }}
+    # Request Not After date matching certificate duration
+    enableDurationFeature: {{ $item.acme.enableDurationFeature }}
+    {{- end }}
+    {{- if $item.acme.externalAccountBinding }}
+    # External Account Binding for ACME servers that require it
+    externalAccountBinding:
+      {{- if and $item.acme.externalAccountBinding.keyID $item.acme.externalAccountBinding.keySecretRef }}
+      keyID: {{ $item.acme.externalAccountBinding.keyID }}
+      keySecretRef:
+        {{- if $item.acme.externalAccountBinding.keySecretRef.name }}
+        name: {{ $item.acme.externalAccountBinding.keySecretRef.name }}
+        {{- else }}
+        {{- fail "externalAccountBinding.keySecretRef.name is required" }}
+        {{- end }}
+        {{- if $item.acme.externalAccountBinding.keySecretRef.key }}
+        key: {{ $item.acme.externalAccountBinding.keySecretRef.key }}
+        {{- end }}
+      {{- else }}
+      {{- fail "externalAccountBinding requires both keyID and keySecretRef" }}
+      {{- end }}
+      {{- if $item.acme.externalAccountBinding.keyAlgorithm }}
+      keyAlgorithm: {{ $item.acme.externalAccountBinding.keyAlgorithm }}
+      {{- end }}
+    {{- end }}
     privateKeySecretRef:
       name: {{ if $item.acme.privateKeySecretRef }}{{ $item.acme.privateKeySecretRef.name | default $privateKeySecretRefName }}{{ else }}{{ $privateKeySecretRefName }}{{ end }}
       {{- if and $item.acme.privateKeySecretRef $item.acme.privateKeySecretRef.key }}
@@ -44,6 +84,18 @@ spec:
   ca:
     {{- if $item.ca.secretName }}
     secretName: {{ $item.ca.secretName }}
+    {{- else }}
+    {{- fail "ca.secretName is required when CA issuer is configured" }}
+    {{- end }}
+    {{- if $item.ca.ocspServers }}
+    # OCSP server URLs for revocation checking
+    ocspServers:
+      {{- $item.ca.ocspServers | toYaml | nindent 6 }}
+    {{- end }}
+    {{- if $item.ca.issuingCertificateURLs }}
+    # URLs to embed in certificates (e.g., http://ca.domain.com/ca.crt)
+    issuingCertificateURLs:
+      {{- $item.ca.issuingCertificateURLs | toYaml | nindent 6 }}
     {{- end }}
     {{- if $item.ca.crlDistributionPoints }}
     crlDistributionPoints:
@@ -59,62 +111,190 @@ spec:
   {{- end }}
   {{- if $item.vault }}
   vault:
+    {{- if $item.vault.server }}
     server: {{ $item.vault.server }}
+    {{- else }}
+    {{- fail "vault.server is required when vault is configured" }}
+    {{- end }}
     {{- if $item.vault.path }}
     path: {{ $item.vault.path }}
+    {{- else }}
+    {{- fail "vault.path is required when vault is configured" }}
     {{- end }}
+    {{- if $item.vault.namespace }}
+    # Vault Enterprise namespace
+    namespace: {{ $item.vault.namespace }}
+    {{- end }}
+    {{- if $item.vault.serverName }}
+    # TLS SNI override
+    serverName: {{ $item.vault.serverName }}
+    {{- end }}
+    {{- if $item.vault.caBundle }}
+    # Base64-encoded PEM CAs for validating Vault's certificate
+    caBundle: {{ $item.vault.caBundle }}
+    {{- end }}
+    {{- if $item.vault.caBundleSecretRef }}
+    # Reference to Secret with PEM CAs for validating Vault's certificate
+    caBundleSecretRef:
+      {{- if $item.vault.caBundleSecretRef.name }}
+      name: {{ $item.vault.caBundleSecretRef.name }}
+      {{- else }}
+      {{- fail "vault.caBundleSecretRef.name is required when caBundleSecretRef is configured" }}
+      {{- end }}
+      {{- if $item.vault.caBundleSecretRef.key }}
+      key: {{ $item.vault.caBundleSecretRef.key }}
+      {{- end }}
+    {{- end }}
+    {{- if $item.vault.clientCertSecretRef }}
+    # Client certificate for mTLS
+    clientCertSecretRef:
+      {{- if $item.vault.clientCertSecretRef.name }}
+      name: {{ $item.vault.clientCertSecretRef.name }}
+      {{- else }}
+      {{- fail "vault.clientCertSecretRef.name is required when clientCertSecretRef is configured" }}
+      {{- end }}
+      {{- if $item.vault.clientCertSecretRef.key }}
+      key: {{ $item.vault.clientCertSecretRef.key }}
+      {{- end }}
+    {{- end }}
+    {{- if $item.vault.clientKeySecretRef }}
+    # Client key for mTLS
+    clientKeySecretRef:
+      {{- if $item.vault.clientKeySecretRef.name }}
+      name: {{ $item.vault.clientKeySecretRef.name }}
+      {{- else }}
+      {{- fail "vault.clientKeySecretRef.name is required when clientKeySecretRef is configured" }}
+      {{- end }}
+      {{- if $item.vault.clientKeySecretRef.key }}
+      key: {{ $item.vault.clientKeySecretRef.key }}
+      {{- end }}
+    {{- end }}
+    {{- if $item.vault.auth }}
     auth:
       {{- if $item.vault.auth.tokenSecretRef }}
       tokenSecretRef:
+        {{- if $item.vault.auth.tokenSecretRef.name }}
         name: {{ $item.vault.auth.tokenSecretRef.name }}
+        {{- else }}
+        {{- fail "vault.auth.tokenSecretRef.name is required" }}
+        {{- end }}
         {{- if $item.vault.auth.tokenSecretRef.key }}
         key: {{ $item.vault.auth.tokenSecretRef.key }}
         {{- end }}
       {{- end }}
       {{- if $item.vault.auth.appRole }}
       appRole:
+        {{- if and $item.vault.auth.appRole.path $item.vault.auth.appRole.roleId $item.vault.auth.appRole.secretRef }}
         path: {{ $item.vault.auth.appRole.path }}
         roleId: {{ $item.vault.auth.appRole.roleId }}
         secretRef:
+          {{- if $item.vault.auth.appRole.secretRef.name }}
           name: {{ $item.vault.auth.appRole.secretRef.name }}
+          {{- else }}
+          {{- fail "vault.auth.appRole.secretRef.name is required" }}
+          {{- end }}
           {{- if $item.vault.auth.appRole.secretRef.key }}
           key: {{ $item.vault.auth.appRole.secretRef.key }}
           {{- end }}
+        {{- else }}
+        {{- fail "vault.auth.appRole requires path, roleId, and secretRef" }}
+        {{- end }}
       {{- end }}
       {{- if $item.vault.auth.kubernetes }}
       kubernetes:
+        {{- if $item.vault.auth.kubernetes.role }}
         role: {{ $item.vault.auth.kubernetes.role }}
+        {{- else }}
+        {{- fail "vault.auth.kubernetes.role is required" }}
+        {{- end }}
+        {{- if $item.vault.auth.kubernetes.secretRef }}
         secretRef:
+          {{- if $item.vault.auth.kubernetes.secretRef.name }}
           name: {{ $item.vault.auth.kubernetes.secretRef.name }}
+          {{- else }}
+          {{- fail "vault.auth.kubernetes.secretRef.name is required" }}
+          {{- end }}
           {{- if $item.vault.auth.kubernetes.secretRef.key }}
           key: {{ $item.vault.auth.kubernetes.secretRef.key }}
           {{- end }}
+        {{- end }}
+        {{- if $item.vault.auth.kubernetes.serviceAccountRef }}
+        # Service account for projected tokens (alternative to secretRef)
+        serviceAccountRef:
+          {{- if $item.vault.auth.kubernetes.serviceAccountRef.name }}
+          name: {{ $item.vault.auth.kubernetes.serviceAccountRef.name }}
+          {{- else }}
+          {{- fail "vault.auth.kubernetes.serviceAccountRef.name is required" }}
+          {{- end }}
+          {{- if $item.vault.auth.kubernetes.serviceAccountRef.audiences }}
+          audiences:
+            {{- toYaml $item.vault.auth.kubernetes.serviceAccountRef.audiences | nindent 12 }}
+          {{- end }}
+        {{- end }}
         {{- if $item.vault.auth.kubernetes.mountPath }}
         mountPath: {{ $item.vault.auth.kubernetes.mountPath }}
         {{- end }}
       {{- end }}
+      {{- if $item.vault.auth.clientCertificate }}
+      # TLS client certificate authentication
+      clientCertificate:
+        {{- if $item.vault.auth.clientCertificate.secretName }}
+        secretName: {{ $item.vault.auth.clientCertificate.secretName }}
+        {{- end }}
+        {{- if $item.vault.auth.clientCertificate.name }}
+        name: {{ $item.vault.auth.clientCertificate.name }}
+        {{- end }}
+        {{- if $item.vault.auth.clientCertificate.mountPath }}
+        mountPath: {{ $item.vault.auth.clientCertificate.mountPath }}
+        {{- end }}
+      {{- end }}
+    {{- else }}
+    {{- fail "vault.auth is required when vault is configured" }}
+    {{- end }}
   {{- end }}
   {{- if $item.venafi }}
   venafi:
     {{- if $item.venafi.zone }}
     zone: {{ $item.venafi.zone }}
+    {{- else }}
+    {{- fail "venafi.zone is required when venafi is configured" }}
     {{- end }}
     {{- if $item.venafi.tpp }}
     tpp:
+      {{- if $item.venafi.tpp.url }}
       url: {{ $item.venafi.tpp.url }}
+      {{- else }}
+      {{- fail "venafi.tpp.url is required when tpp is configured" }}
+      {{- end }}
+      {{- if $item.venafi.tpp.credentialsRef }}
       credentialsRef:
+        {{- if $item.venafi.tpp.credentialsRef.name }}
         name: {{ $item.venafi.tpp.credentialsRef.name }}
+        {{- else }}
+        {{- fail "venafi.tpp.credentialsRef.name is required" }}
+        {{- end }}
         {{- if $item.venafi.tpp.credentialsRef.key }}
         key: {{ $item.venafi.tpp.credentialsRef.key }}
         {{- end }}
+      {{- else }}
+      {{- fail "venafi.tpp.credentialsRef is required" }}
+      {{- end }}
     {{- end }}
     {{- if $item.venafi.cloud }}
     cloud:
+      {{- if $item.venafi.cloud.apiTokenSecretRef }}
       apiTokenSecretRef:
+        {{- if $item.venafi.cloud.apiTokenSecretRef.name }}
         name: {{ $item.venafi.cloud.apiTokenSecretRef.name }}
+        {{- else }}
+        {{- fail "venafi.cloud.apiTokenSecretRef.name is required" }}
+        {{- end }}
         {{- if $item.venafi.cloud.apiTokenSecretRef.key }}
         key: {{ $item.venafi.cloud.apiTokenSecretRef.key }}
         {{- end }}
+      {{- else }}
+      {{- fail "venafi.cloud.apiTokenSecretRef is required" }}
+      {{- end }}
     {{- end }}
   {{- end }}
 {{- end }}

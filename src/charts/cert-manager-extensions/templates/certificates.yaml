@@ -18,23 +18,43 @@ metadata:
     {{- toYaml $item.annotations | nindent 4 }}
   {{- end }}
 spec:
+  {{- if $item.secretName }}
   secretName: {{ $item.secretName }}
+  {{- else }}
+  {{- fail "secretName is required for Certificate" }}
+  {{- end }}
+  {{- if $item.issuerRef }}
   issuerRef:
+    {{- if $item.issuerRef.name }}
     name: {{ $item.issuerRef.name }}
+    {{- else }}
+    {{- fail "issuerRef.name is required for Certificate" }}
+    {{- end }}
     {{- if $item.issuerRef.group }}
     group: {{ $item.issuerRef.group }}
     {{- end }}
     {{- if $item.issuerRef.kind }}
     kind: {{ $item.issuerRef.kind }}
     {{- end }}
+  {{- else }}
+  {{- fail "issuerRef is required for Certificate" }}
+  {{- end }}
   {{- if $item.duration }}
   duration: {{ $item.duration }}
   {{- end }}
   {{- if $item.renewBefore }}
   renewBefore: {{ $item.renewBefore }}
   {{- end }}
+  {{- if $item.renewBeforePercentage }}
+  # Alternative to renewBefore: percentage of certificate lifetime
+  renewBeforePercentage: {{ $item.renewBeforePercentage }}
+  {{- end }}
   {{- if $item.commonName }}
   commonName: {{ $item.commonName }}
+  {{- end }}
+  {{- if $item.literalSubject }}
+  # Literal subject string (cannot be used with commonName)
+  literalSubject: {{ $item.literalSubject }}
   {{- end }}
   {{- if $item.dnsNames }}
   dnsNames:
@@ -52,32 +72,101 @@ spec:
   uris:
     {{- toYaml $item.uriSans | nindent 4 }}
   {{- end }}
+  {{- if $item.otherNames }}
+  # Other subject alternative names with OIDs
+  otherNames:
+    {{- toYaml $item.otherNames | nindent 4 }}
+  {{- end }}
   {{- if $item.subject }}
   subject:
     {{- toYaml $item.subject | nindent 4 }}
+  {{- end }}
+  {{- if hasKey $item "isCA" }}
+  # Request basic constraints isCA value
+  isCA: {{ $item.isCA }}
+  {{- end }}
+  {{- if hasKey $item "encodeUsagesInRequest" }}
+  # Whether to encode KeyUsage/ExtKeyUsage in CSR
+  encodeUsagesInRequest: {{ $item.encodeUsagesInRequest }}
+  {{- end }}
+  {{- if $item.additionalOutputFormats }}
+  # Additional certificate output formats (DER, CombinedPEM)
+  additionalOutputFormats:
+    {{- toYaml $item.additionalOutputFormats | nindent 4 }}
+  {{- end }}
+  {{- if $item.nameConstraints }}
+  # Name constraints for CA certificates
+  nameConstraints:
+    {{- toYaml $item.nameConstraints | nindent 4 }}
+  {{- end }}
+  {{- if $item.revisionHistoryLimit }}
+  # Number of old CertificateRequest resources to keep
+  revisionHistoryLimit: {{ $item.revisionHistoryLimit }}
+  {{- end }}
+  {{- if $item.secretTemplate }}
+  # Template for the generated Secret resource
+  secretTemplate:
+    {{- if $item.secretTemplate.annotations }}
+    annotations:
+      {{- toYaml $item.secretTemplate.annotations | nindent 6 }}
+    {{- end }}
+    {{- if $item.secretTemplate.labels }}
+    labels:
+      {{- toYaml $item.secretTemplate.labels | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.signatureAlgorithm }}
+  # Specific signature algorithm to use
+  signatureAlgorithm: {{ $item.signatureAlgorithm }}
   {{- end }}
   {{- if $item.keystores }}
   keystores:
     {{- if $item.keystores.jks }}
     jks:
+      {{- if hasKey $item.keystores.jks "create" }}
       create: {{ $item.keystores.jks.create }}
+      {{- else }}
+      {{- fail "keystores.jks.create is required when jks is configured" }}
+      {{- end }}
+      {{- if $item.keystores.jks.password }}
+      # Direct password (alternative to passwordSecretRef)
+      password: {{ $item.keystores.jks.password }}
+      {{- else if $item.keystores.jks.passwordSecretRef }}
       passwordSecretRef:
+        {{- if $item.keystores.jks.passwordSecretRef.name }}
         name: {{ $item.keystores.jks.passwordSecretRef.name }}
+        {{- else }}
+        {{- fail "keystores.jks.passwordSecretRef.name is required when passwordSecretRef is specified" }}
+        {{- end }}
         {{- if $item.keystores.jks.passwordSecretRef.key }}
         key: {{ $item.keystores.jks.passwordSecretRef.key }}
         {{- end }}
+      {{- end }}
       {{- if $item.keystores.jks.alias }}
       alias: {{ $item.keystores.jks.alias }}
       {{- end }}
     {{- end }}
     {{- if $item.keystores.pkcs12 }}
     pkcs12:
+      {{- if hasKey $item.keystores.pkcs12 "create" }}
       create: {{ $item.keystores.pkcs12.create }}
+      {{- else }}
+      {{- fail "keystores.pkcs12.create is required when pkcs12 is configured" }}
+      {{- end }}
+      {{- if $item.keystores.pkcs12.password }}
+      # Direct password (alternative to passwordSecretRef)
+      password: {{ $item.keystores.pkcs12.password }}
+      {{- else if $item.keystores.pkcs12.passwordSecretRef }}
       passwordSecretRef:
+        {{- if $item.keystores.pkcs12.passwordSecretRef.name }}
         name: {{ $item.keystores.pkcs12.passwordSecretRef.name }}
+        {{- else }}
+        {{- fail "keystores.pkcs12.passwordSecretRef.name is required when passwordSecretRef is specified" }}
+        {{- end }}
         {{- if $item.keystores.pkcs12.passwordSecretRef.key }}
         key: {{ $item.keystores.pkcs12.passwordSecretRef.key }}
         {{- end }}
+      {{- end }}
       {{- if $item.keystores.pkcs12.profile }}
       profile: {{ $item.keystores.pkcs12.profile }}
       {{- end }}
