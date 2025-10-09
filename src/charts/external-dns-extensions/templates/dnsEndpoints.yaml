@@ -20,7 +20,11 @@ metadata:
 spec:
   endpoints:
     {{- range $endpoint := $item.endpoints }}
-    - dnsName: {{ $endpoint.dnsName }}
+    - {{- if $endpoint.dnsName }}
+      dnsName: {{ $endpoint.dnsName }}
+      {{- else }}
+      {{- fail "dnsName is required for each endpoint" }}
+      {{- end }}
       {{- if $endpoint.labels }}
       labels:
         {{- toYaml $endpoint.labels | nindent 8 }}
@@ -32,12 +36,20 @@ spec:
       {{- if $endpoint.recordTTL }}
       recordTTL: {{ $endpoint.recordTTL }}
       {{- end }}
+      {{- if $endpoint.recordType }}
       recordType: {{ $endpoint.recordType }}
+      {{- else }}
+      {{- fail "recordType is required for each endpoint" }}
+      {{- end }}
       {{- if $endpoint.setIdentifier }}
       setIdentifier: {{ $endpoint.setIdentifier }}
       {{- end }}
+      {{- if $endpoint.targets }}
       targets:
         {{- toYaml $endpoint.targets | nindent 8 }}
+      {{- else }}
+      {{- fail "targets is required for each endpoint" }}
+      {{- end }}
     {{- end }}
 {{- end }}
 {{- end }}
