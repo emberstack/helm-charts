@@ -3,7 +3,8 @@
     "allow": [
       "Bash(kubectl get:*)",
       "Bash(kubectl explain:*)",
-      "Bash(kubectl api-resources:*)"
+      "Bash(kubectl api-resources:*)",
+      "Bash(helm lint:*)"
     ],
     "deny": [],
     "ask": []

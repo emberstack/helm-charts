@@ -1,0 +1,36 @@
+{{- range .Values.configMaps }}
+{{- $item := . -}}
+{{- if $item.enabled }}
+{{- $fullName := $item.fullnameOverride | default (print (include "core-extensions.fullname" $) "-" $item.name) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+  labels:
+    {{- include "core-extensions.labels" $ | nindent 4 }}
+    {{- with $item.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if $item.annotations }}
+  annotations:
+    {{- toYaml $item.annotations | nindent 4 }}
+  {{- end }}
+{{- if or $item.data $item.binaryData }}
+{{- if $item.data }}
+data:
+  {{- toYaml $item.data | nindent 2 }}
+{{- end }}
+{{- if $item.binaryData }}
+binaryData:
+  {{- toYaml $item.binaryData | nindent 2 }}
+{{- end }}
+{{- else }}
+data: {}
+{{- end }}
+{{- if hasKey $item "immutable" }}
+immutable: {{ $item.immutable }}
+{{- end }}
+{{- end }}
+{{- end }}
