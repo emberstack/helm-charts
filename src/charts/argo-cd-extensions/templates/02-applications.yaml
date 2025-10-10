@@ -17,13 +17,44 @@ metadata:
   annotations:
     {{- toYaml $item.annotations | nindent 4 }}
   {{- end }}
+  {{- if $item.finalizers }}
+  finalizers:
+    {{- toYaml $item.finalizers | nindent 4 }}
+  {{- end }}
 spec:
   project: {{ $item.project | default "default" }}
+  {{- if $item.source }}
+  source:
+    {{- $item.source | toYaml | nindent 4 }}
+  {{- else if $item.sources }}
   sources:
     {{- $item.sources | toYaml | nindent 4 }}
+  {{- else }}
+  {{- fail "Either source or sources is required for Application" }}
+  {{- end }}
+  {{- if $item.destination }}
   destination:
-    server: {{- if .destination }} {{ $item.destination.server | default "https://kubernetes.default.svc" }} {{- else }} "https://kubernetes.default.svc" {{- end }}
-    namespace: {{- if .destination }} {{ $item.destination.namespace | default $.Release.Namespace }} {{- else }} {{ $.Release.Namespace }} {{- end }}
+    {{- if or $item.destination.server $item.destination.name }}
+    {{- if $item.destination.server }}
+    server: {{ $item.destination.server }}
+    {{- end }}
+    {{- if $item.destination.name }}
+    name: {{ $item.destination.name }}
+    {{- end }}
+    {{- else }}
+    {{- fail "destination must have either server or name" }}
+    {{- end }}
+    {{- if $item.destination.namespace }}
+    namespace: {{ $item.destination.namespace }}
+    {{- else }}
+    namespace: {{ $.Release.Namespace }}
+    {{- end }}
+  {{- else }}
+  # Default destination to in-cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $.Release.Namespace }}
+  {{- end }}
   {{- if $item.ignoreDifferences }}
   ignoreDifferences:
     {{- $item.ignoreDifferences | toYaml | nindent 4 }}
@@ -39,5 +70,9 @@ spec:
   syncPolicy:
     {{- $item.syncPolicy | toYaml | nindent 4 }}
   {{- end }}
+{{- if $item.operation }}
+operation:
+  {{- $item.operation | toYaml | nindent 2 }}
+{{- end }}
 {{- end }}
 {{- end }}

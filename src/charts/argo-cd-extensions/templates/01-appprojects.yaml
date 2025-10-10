@@ -51,7 +51,7 @@ spec:
   {{- end }}
   {{- if $item.orphanedResources }}
   orphanedResources:
-    {{ $item.orphanedResources | toYaml | nindent 4 }}
+    {{- $item.orphanedResources | toYaml | nindent 4 }}
   {{- end }}
   {{- if $item.syncWindows }}
   syncWindows:
