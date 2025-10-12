@@ -32,29 +32,26 @@ spec:
   {{- else }}
   {{- fail "Either source or sources is required for Application" }}
   {{- end }}
-  {{- if $item.destination }}
   destination:
-    {{- if or $item.destination.server $item.destination.name }}
+    {{- if $item.destination }}
     {{- if $item.destination.server }}
     server: {{ $item.destination.server }}
-    {{- end }}
-    {{- if $item.destination.name }}
+    {{- else if $item.destination.name }}
     name: {{ $item.destination.name }}
-    {{- end }}
     {{- else }}
-    {{- fail "destination must have either server or name" }}
+    # Default to in-cluster server when destination is specified but server/name is not
+    server: https://kubernetes.default.svc
     {{- end }}
     {{- if $item.destination.namespace }}
     namespace: {{ $item.destination.namespace }}
     {{- else }}
     namespace: {{ $.Release.Namespace }}
     {{- end }}
-  {{- else }}
-  # Default destination to in-cluster
-  destination:
+    {{- else }}
+    # Default destination to in-cluster
     server: https://kubernetes.default.svc
     namespace: {{ $.Release.Namespace }}
-  {{- end }}
+    {{- end }}
   {{- if $item.ignoreDifferences }}
   ignoreDifferences:
     {{- $item.ignoreDifferences | toYaml | nindent 4 }}
