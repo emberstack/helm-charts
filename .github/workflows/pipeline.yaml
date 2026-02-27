@@ -150,7 +150,7 @@ jobs:
           done
 
       - name: artifacts - helm - upload
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: artifacts-helm-${{env.gitVersion_SemVer}}
           path: .artifacts/helm
@@ -166,7 +166,7 @@ jobs:
     steps:
 
       - name: artifacts - helm - download
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: artifacts-helm-${{env.gitVersion_SemVer}}
           path: .artifacts/helm
