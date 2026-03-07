@@ -4,8 +4,8 @@ namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
-webApplicationFirewallPolicies: []
-# - name: my-waf-policy
+webApplicationFirewallPolicies: {}
+# my-waf-policy:          # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
@@ -19,8 +19,8 @@ webApplicationFirewallPolicies: []
 #   webApplicationFirewall:
 #     id: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<policy>
 
-healthCheckPolicies: []
-# - name: my-healthcheck
+healthCheckPolicies: {}
+# my-healthcheck:          # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
@@ -44,8 +44,8 @@ healthCheckPolicies: []
 #           - start: 200
 #             end: 299
 
-routePolicies: []
-# - name: my-route-policy
+routePolicies: {}
+# my-route-policy:          # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
@@ -63,8 +63,8 @@ routePolicies: []
 #       cookieName: my-cookie
 #       cookieDuration: 3600
 
-frontendTLSPolicies: []
-# - name: my-frontend-tls
+frontendTLSPolicies: {}
+# my-frontend-tls:          # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
@@ -87,8 +87,8 @@ frontendTLSPolicies: []
 #       subjectAltNames:
 #         - "*.example.com"
 
-backendTLSPolicies: []
-# - name: my-backend-tls
+backendTLSPolicies: {}
+# my-backend-tls:          # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
@@ -99,8 +99,8 @@ backendTLSPolicies: []
 #     name: my-service
 #   default: {}
 
-backendLoadBalancingPolicies: []
-# - name: my-lb-policy
+backendLoadBalancingPolicies: {}
+# my-lb-policy:          # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}

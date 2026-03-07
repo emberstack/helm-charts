@@ -1,5 +1,5 @@
-{{- range .Values.gateways }}
-{{- $item := . -}}
+{{- range $key, $item := .Values.gateways }}
+{{- $item := merge (dict "name" $key) $item -}}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
@@ -34,8 +34,8 @@ spec:
             {{- if .namespace }}
             namespace: {{ .namespace }}
             {{- end }}
-            {{- if .group }}
-            group: {{ .group }}
+            {{- if hasKey . "group" }}
+            group: {{ .group | quote }}
             {{- end }}
             {{- if .kind }}
             kind: {{ .kind }}

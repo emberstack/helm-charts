@@ -1,5 +1,5 @@
-{{- range .Values.routePolicies }}
-{{- $item := . -}}
+{{- range $key, $item := .Values.routePolicies }}
+{{- $item := merge (dict "name" $key) $item -}}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---

@@ -6,4 +6,25 @@ commonAnnotations: {}
 
 issuers: []
 clusterIssuers: []
-certificates: []
+
+## @section Certificate parameters
+## Map of certificates keyed by name. Maps merge across value files,
+## allowing environment-specific overrides (e.g. extraDnsNames) without
+## redefining the entire certificate.
+certificates: {}
+# ingress:
+#   enabled: true
+#   name: ""                    # defaults to map key
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   secretName: my-cert-secret
+#   issuerRef:
+#     name: letsencrypt
+#     kind: ClusterIssuer
+#   dnsNames:
+#     - example.com
+#   extraDnsNames: []           # merged with dnsNames — use for per-env additions
+#   ipAddresses: []
+#   emailAddresses: []
+#   uriSans: []

@@ -1,0 +1,3 @@
+{{- if and .Values.certificates (not (kindIs "map" .Values.certificates)) }}
+  {{- fail "certificates must be a map (not a list). Use certificates: {} with named keys." }}
+{{- end }}

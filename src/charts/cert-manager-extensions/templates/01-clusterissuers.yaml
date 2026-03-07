@@ -71,7 +71,7 @@ spec:
       {{- end }}
     {{- if $item.acme.solvers }}
     solvers:
-      {{- $item.acme.solvers | toYaml | nindent 6 }}
+      {{- include "common.tplvalues.render" (dict "value" $item.acme.solvers "context" $) | nindent 6 }}
     {{- end }}
   {{- end }}
   {{- if $item.ca }}

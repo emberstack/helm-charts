@@ -1,5 +1,5 @@
-{{- range .Values.certificates }}
-{{- $item := . -}}
+{{- range $key, $item := .Values.certificates }}
+{{- $item := merge (dict "name" $key) $item -}}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
@@ -40,77 +40,68 @@ spec:
   renewBefore: {{ $item.renewBefore }}
   {{- end }}
   {{- if $item.renewBeforePercentage }}
-  # Alternative to renewBefore: percentage of certificate lifetime
   renewBeforePercentage: {{ $item.renewBeforePercentage }}
   {{- end }}
   {{- if $item.commonName }}
   commonName: {{ $item.commonName }}
   {{- end }}
   {{- if $item.literalSubject }}
-  # Literal subject string (cannot be used with commonName)
   literalSubject: {{ $item.literalSubject }}
   {{- end }}
-  {{- if $item.dnsNames }}
+  {{- $dnsNames := concat (default list $item.dnsNames) (default list $item.extraDnsNames) }}
+  {{- if $dnsNames }}
   dnsNames:
-    {{- toYaml $item.dnsNames | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" $dnsNames "context" $) | nindent 4 }}
   {{- end }}
   {{- if $item.ipAddresses }}
   ipAddresses:
-    {{- toYaml $item.ipAddresses | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" $item.ipAddresses "context" $) | nindent 4 }}
   {{- end }}
   {{- if $item.emailAddresses }}
   emailAddresses:
-    {{- toYaml $item.emailAddresses | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" $item.emailAddresses "context" $) | nindent 4 }}
   {{- end }}
   {{- if $item.uriSans }}
   uris:
-    {{- toYaml $item.uriSans | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" $item.uriSans "context" $) | nindent 4 }}
   {{- end }}
   {{- if $item.otherNames }}
-  # Other subject alternative names with OIDs
   otherNames:
-    {{- toYaml $item.otherNames | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" $item.otherNames "context" $) | nindent 4 }}
   {{- end }}
   {{- if $item.subject }}
   subject:
     {{- toYaml $item.subject | nindent 4 }}
   {{- end }}
   {{- if hasKey $item "isCA" }}
-  # Request basic constraints isCA value
   isCA: {{ $item.isCA }}
   {{- end }}
   {{- if hasKey $item "encodeUsagesInRequest" }}
-  # Whether to encode KeyUsage/ExtKeyUsage in CSR
   encodeUsagesInRequest: {{ $item.encodeUsagesInRequest }}
   {{- end }}
   {{- if $item.additionalOutputFormats }}
-  # Additional certificate output formats (DER, CombinedPEM)
   additionalOutputFormats:
     {{- toYaml $item.additionalOutputFormats | nindent 4 }}
   {{- end }}
   {{- if $item.nameConstraints }}
-  # Name constraints for CA certificates
   nameConstraints:
     {{- toYaml $item.nameConstraints | nindent 4 }}
   {{- end }}
   {{- if $item.revisionHistoryLimit }}
-  # Number of old CertificateRequest resources to keep
   revisionHistoryLimit: {{ $item.revisionHistoryLimit }}
   {{- end }}
   {{- if $item.secretTemplate }}
-  # Template for the generated Secret resource
   secretTemplate:
     {{- if $item.secretTemplate.annotations }}
     annotations:
-      {{- toYaml $item.secretTemplate.annotations | nindent 6 }}
+      {{- include "common.tplvalues.render" (dict "value" $item.secretTemplate.annotations "context" $) | nindent 6 }}
     {{- end }}
     {{- if $item.secretTemplate.labels }}
     labels:
-      {{- toYaml $item.secretTemplate.labels | nindent 6 }}
+      {{- include "common.tplvalues.render" (dict "value" $item.secretTemplate.labels "context" $) | nindent 6 }}
     {{- end }}
   {{- end }}
   {{- if $item.signatureAlgorithm }}
-  # Specific signature algorithm to use
   signatureAlgorithm: {{ $item.signatureAlgorithm }}
   {{- end }}
   {{- if $item.keystores }}
@@ -123,7 +114,6 @@ spec:
       {{- fail "keystores.jks.create is required when jks is configured" }}
       {{- end }}
       {{- if $item.keystores.jks.password }}
-      # Direct password (alternative to passwordSecretRef)
       password: {{ $item.keystores.jks.password }}
       {{- else if $item.keystores.jks.passwordSecretRef }}
       passwordSecretRef:
@@ -148,7 +138,6 @@ spec:
       {{- fail "keystores.pkcs12.create is required when pkcs12 is configured" }}
       {{- end }}
       {{- if $item.keystores.pkcs12.password }}
-      # Direct password (alternative to passwordSecretRef)
       password: {{ $item.keystores.pkcs12.password }}
       {{- else if $item.keystores.pkcs12.passwordSecretRef }}
       passwordSecretRef:
@@ -183,7 +172,7 @@ spec:
   {{- end }}
   {{- if $item.usages }}
   usages:
-    {{- toYaml $item.usages | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" $item.usages "context" $) | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

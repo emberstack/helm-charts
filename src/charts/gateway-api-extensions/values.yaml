@@ -4,49 +4,41 @@ namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
-gateways: []
-# - name: my-gateway
+## @section Gateway parameters
+## Map of gateways keyed by name. Maps merge across value files.
+gateways: {}
+# my-gateway:
 #   enabled: true
+#   name: ""                    # defaults to map key
 #   fullnameOverride: ""
 #   labels: {}
 #   annotations: {}
 #   gatewayClassName: nginx
 #   listeners:
-#     - name: http
-#       port: 80
-#       protocol: HTTP
-#       hostname: "*.example.com"
-#       allowedRoutes:
-#         namespaces:
-#           from: All
 #     - name: https
 #       port: 443
 #       protocol: HTTPS
-#       hostname: "*.example.com"
 #       tls:
 #         mode: Terminate
 #         certificateRefs:
 #           - name: wildcard-tls
-#             namespace: cert-manager
 #       allowedRoutes:
 #         namespaces:
 #           from: All
 #   addresses: []
-#   # - type: IPAddress
-#   #   value: 1.2.3.4
 #   infrastructure: {}
-#   # annotations: {}
-#   # labels: {}
 
-httpRoutes: []
-# - name: my-route
+## @section HTTPRoute parameters
+## Map of HTTP routes keyed by name. Maps merge across value files.
+httpRoutes: {}
+# my-route:
 #   enabled: true
+#   name: ""
 #   fullnameOverride: ""
 #   labels: {}
 #   annotations: {}
 #   parentRefs:
 #     - name: my-gateway
-#       namespace: default
 #       sectionName: https
 #   hostnames:
 #     - app.example.com
@@ -58,14 +50,14 @@ httpRoutes: []
 #       backendRefs:
 #         - name: my-service
 #           port: 8080
-#       filters: []
 
-referenceGrants: []
-# - name: allow-cert-ref
+## @section ReferenceGrant parameters
+## Map of reference grants keyed by name. Maps merge across value files.
+referenceGrants: {}
+# allow-cert-ref:
 #   enabled: true
+#   name: ""
 #   fullnameOverride: ""
-#   labels: {}
-#   annotations: {}
 #   from:
 #     - group: gateway.networking.k8s.io
 #       kind: Gateway

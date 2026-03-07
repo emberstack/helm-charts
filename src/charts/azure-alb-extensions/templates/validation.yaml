@@ -1,0 +1,18 @@
+{{- if and .Values.webApplicationFirewallPolicies (not (kindIs "map" .Values.webApplicationFirewallPolicies)) }}
+  {{- fail "webApplicationFirewallPolicies must be a map (not a list). Use webApplicationFirewallPolicies: {} with named keys." }}
+{{- end }}
+{{- if and .Values.healthCheckPolicies (not (kindIs "map" .Values.healthCheckPolicies)) }}
+  {{- fail "healthCheckPolicies must be a map (not a list). Use healthCheckPolicies: {} with named keys." }}
+{{- end }}
+{{- if and .Values.routePolicies (not (kindIs "map" .Values.routePolicies)) }}
+  {{- fail "routePolicies must be a map (not a list). Use routePolicies: {} with named keys." }}
+{{- end }}
+{{- if and .Values.frontendTLSPolicies (not (kindIs "map" .Values.frontendTLSPolicies)) }}
+  {{- fail "frontendTLSPolicies must be a map (not a list). Use frontendTLSPolicies: {} with named keys." }}
+{{- end }}
+{{- if and .Values.backendTLSPolicies (not (kindIs "map" .Values.backendTLSPolicies)) }}
+  {{- fail "backendTLSPolicies must be a map (not a list). Use backendTLSPolicies: {} with named keys." }}
+{{- end }}
+{{- if and .Values.backendLoadBalancingPolicies (not (kindIs "map" .Values.backendLoadBalancingPolicies)) }}
+  {{- fail "backendLoadBalancingPolicies must be a map (not a list). Use backendLoadBalancingPolicies: {} with named keys." }}
+{{- end }}

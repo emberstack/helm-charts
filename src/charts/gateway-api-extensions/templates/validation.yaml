@@ -1,0 +1,9 @@
+{{- if and .Values.gateways (not (kindIs "map" .Values.gateways)) }}
+  {{- fail "gateways must be a map (not a list). Use gateways: {} with named keys." }}
+{{- end }}
+{{- if and .Values.httpRoutes (not (kindIs "map" .Values.httpRoutes)) }}
+  {{- fail "httpRoutes must be a map (not a list). Use httpRoutes: {} with named keys." }}
+{{- end }}
+{{- if and .Values.referenceGrants (not (kindIs "map" .Values.referenceGrants)) }}
+  {{- fail "referenceGrants must be a map (not a list). Use referenceGrants: {} with named keys." }}
+{{- end }}
