@@ -1,0 +1,26 @@
+{{- range .Values.snippetsPolicies }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.nginx.org/v1alpha1
+kind: SnippetsPolicy
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  targetRefs:
+    {{- range $item.targetRefs }}
+    - group: {{ .group | default "gateway.networking.k8s.io" }}
+      kind: {{ .kind | default "HTTPRoute" }}
+      name: {{ .name }}
+    {{- end }}
+  {{- if $item.snippets }}
+  snippets:
+    {{- toYaml $item.snippets | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

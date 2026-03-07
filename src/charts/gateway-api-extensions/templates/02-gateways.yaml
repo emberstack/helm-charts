@@ -1,0 +1,65 @@
+{{- range .Values.gateways }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  gatewayClassName: {{ $item.gatewayClassName }}
+  {{- if $item.listeners }}
+  listeners:
+    {{- range $item.listeners }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      protocol: {{ .protocol }}
+      {{- if .hostname }}
+      hostname: {{ .hostname | quote }}
+      {{- end }}
+      {{- if .tls }}
+      tls:
+        {{- if .tls.mode }}
+        mode: {{ .tls.mode }}
+        {{- end }}
+        {{- if .tls.certificateRefs }}
+        certificateRefs:
+          {{- range .tls.certificateRefs }}
+          - name: {{ .name }}
+            {{- if .namespace }}
+            namespace: {{ .namespace }}
+            {{- end }}
+            {{- if .group }}
+            group: {{ .group }}
+            {{- end }}
+            {{- if .kind }}
+            kind: {{ .kind }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .tls.options }}
+        options:
+          {{- toYaml .tls.options | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      {{- if .allowedRoutes }}
+      allowedRoutes:
+        {{- toYaml .allowedRoutes | nindent 8 }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.addresses }}
+  addresses:
+    {{- toYaml $item.addresses | nindent 4 }}
+  {{- end }}
+  {{- if $item.infrastructure }}
+  infrastructure:
+    {{- toYaml $item.infrastructure | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

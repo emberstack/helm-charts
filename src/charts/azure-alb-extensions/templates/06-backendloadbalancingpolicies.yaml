@@ -1,0 +1,35 @@
+{{- range .Values.backendLoadBalancingPolicies }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: alb.networking.azure.io/v1
+kind: BackendLoadBalancingPolicy
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  {{- if $item.targetRefs }}
+  targetRefs:
+    {{- range $item.targetRefs }}
+    - group: {{ .group | default "" | quote }}
+      kind: {{ .kind | default "Service" }}
+      name: {{ .name }}
+      {{- if .namespace }}
+      namespace: {{ .namespace }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $item.loadBalancing }}
+  loadBalancing:
+    {{- toYaml $item.loadBalancing | nindent 4 }}
+  {{- end }}
+  {{- if $item.circuitBreaker }}
+  circuitBreaker:
+    {{- toYaml $item.circuitBreaker | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,30 @@
+{{- range .Values.referenceGrants }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  from:
+    {{- range $item.from }}
+    - group: {{ .group | default "gateway.networking.k8s.io" }}
+      kind: {{ .kind }}
+      namespace: {{ .namespace }}
+    {{- end }}
+  to:
+    {{- range $item.to }}
+    - group: {{ .group | default "" | quote }}
+      kind: {{ .kind }}
+      {{- if .name }}
+      name: {{ .name }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}

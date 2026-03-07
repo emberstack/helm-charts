@@ -1,0 +1,76 @@
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+
+gateways: []
+# - name: my-gateway
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   gatewayClassName: nginx
+#   listeners:
+#     - name: http
+#       port: 80
+#       protocol: HTTP
+#       hostname: "*.example.com"
+#       allowedRoutes:
+#         namespaces:
+#           from: All
+#     - name: https
+#       port: 443
+#       protocol: HTTPS
+#       hostname: "*.example.com"
+#       tls:
+#         mode: Terminate
+#         certificateRefs:
+#           - name: wildcard-tls
+#             namespace: cert-manager
+#       allowedRoutes:
+#         namespaces:
+#           from: All
+#   addresses: []
+#   # - type: IPAddress
+#   #   value: 1.2.3.4
+#   infrastructure: {}
+#   # annotations: {}
+#   # labels: {}
+
+httpRoutes: []
+# - name: my-route
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   parentRefs:
+#     - name: my-gateway
+#       namespace: default
+#       sectionName: https
+#   hostnames:
+#     - app.example.com
+#   rules:
+#     - matches:
+#         - path:
+#             type: PathPrefix
+#             value: /
+#       backendRefs:
+#         - name: my-service
+#           port: 8080
+#       filters: []
+
+referenceGrants: []
+# - name: allow-cert-ref
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   from:
+#     - group: gateway.networking.k8s.io
+#       kind: Gateway
+#       namespace: default
+#   to:
+#     - group: ""
+#       kind: Secret
+#       name: wildcard-tls

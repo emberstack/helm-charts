@@ -1,0 +1,115 @@
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+
+webApplicationFirewallPolicies: []
+# - name: my-waf-policy
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRef:
+#     group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: my-gateway
+#     namespace: ""
+#     sectionNames: []
+#   webApplicationFirewall:
+#     id: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<policy>
+
+healthCheckPolicies: []
+# - name: my-healthcheck
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRef:
+#     group: ""
+#     kind: Service
+#     name: my-service
+#   default:
+#     port: 8080
+#     interval: 5s
+#     timeout: 5s
+#     healthyThreshold: 3
+#     unhealthyThreshold: 3
+#     useTLS: false
+#     http:
+#       host: ""
+#       path: /health
+#       match:
+#         statusCodes:
+#           - start: 200
+#             end: 299
+
+routePolicies: []
+# - name: my-route-policy
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRef:
+#     group: gateway.networking.k8s.io
+#     kind: HTTPRoute
+#     name: my-route
+#   default:
+#     timeouts:
+#       routeTimeout: 60s
+#     sessionAffinity:
+#       enabled: true
+#       affinityType: Application
+#       cookieName: my-cookie
+#       cookieDuration: 3600
+
+frontendTLSPolicies: []
+# - name: my-frontend-tls
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRef:
+#     group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: my-gateway
+#     sectionNames:
+#       - https
+#   default:
+#     policyType:
+#       type: predefined
+#       name: 2024-01
+#     verify:
+#       caCertificateRef:
+#         name: my-ca-cert
+#         group: ""
+#         kind: Secret
+#       subjectAltNames:
+#         - "*.example.com"
+
+backendTLSPolicies: []
+# - name: my-backend-tls
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRef:
+#     group: ""
+#     kind: Service
+#     name: my-service
+#   default: {}
+
+backendLoadBalancingPolicies: []
+# - name: my-lb-policy
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:
+#     - group: ""
+#       kind: Service
+#       name: my-service
+#   loadBalancing:
+#     strategy: RoundRobin
+#   circuitBreaker:
+#     maxConnections: 100

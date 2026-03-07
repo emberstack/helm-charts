@@ -1,0 +1,28 @@
+{{- range .Values.clientSettingsPolicies }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.nginx.org/v1alpha1
+kind: ClientSettingsPolicy
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  targetRef:
+    group: {{ $item.targetRef.group | default "gateway.networking.k8s.io" }}
+    kind: {{ $item.targetRef.kind | default "Gateway" }}
+    name: {{ $item.targetRef.name }}
+  {{- if $item.body }}
+  body:
+    {{- toYaml $item.body | nindent 4 }}
+  {{- end }}
+  {{- if $item.keepAlive }}
+  keepAlive:
+    {{- toYaml $item.keepAlive | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,124 @@
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+
+clientSettingsPolicies: []
+# - name: my-client-settings
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRef:
+#     group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: my-gateway
+#   body:
+#     maxSize: 10m
+#     timeout: 60s
+#   keepAlive:
+#     requests: 100
+#     time: 1h
+#     timeout:
+#       server: 75s
+#       header: 60s
+
+observabilityPolicies: []
+# - name: my-observability
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:
+#     - group: gateway.networking.k8s.io
+#       kind: HTTPRoute
+#       name: my-route
+#   tracing:
+#     strategy: ratio
+#     ratio: 10
+#     context: extract
+#     spanName: my-span
+#     spanAttributes:
+#       - key: env
+#         value: production
+
+rateLimitPolicies: []
+# - name: my-rate-limit
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:
+#     - group: gateway.networking.k8s.io
+#       kind: HTTPRoute
+#       name: my-route
+#   rateLimit:
+#     logLevel: info
+#     rejectCode: 429
+#     local:
+#       rules:
+#         - rate: 10r/s
+#           burst: 20
+#           delay: 5
+#           zoneSize: 10m
+
+upstreamSettingsPolicies: []
+# - name: my-upstream-settings
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:
+#     - group: ""
+#       kind: Service
+#       name: my-service
+#   zoneSize: 512k
+#   loadBalancingMethod: least_conn
+#   keepAlive:
+#     connections: 32
+#     requests: 100
+#     time: 1h
+#     timeout: 60s
+
+proxySettingsPolicies: []
+# - name: my-proxy-settings
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:
+#     - group: gateway.networking.k8s.io
+#       kind: HTTPRoute
+#       name: my-route
+#   buffering:
+#     disable: false
+#     bufferSize: 4k
+#     buffers:
+#       number: 8
+#       size: 4k
+#     busyBuffersSize: 8k
+
+snippetsPolicies: []
+# - name: my-snippets-policy
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:
+#     - group: gateway.networking.k8s.io
+#       kind: HTTPRoute
+#       name: my-route
+#   snippets:
+#     - context: http.server.location
+#       value: "proxy_set_header X-Custom-Header value;"
+
+snippetsFilters: []
+# - name: my-snippets-filter
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   snippets:
+#     - context: http.server.location
+#       value: "proxy_set_header X-Custom-Header value;"

@@ -1,0 +1,24 @@
+apiVersion: v2
+name: gateway-api-extensions
+description: A Helm chart for Gateway API extensions (Gateways, HTTPRoutes, ReferenceGrants)
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+
+icon: https://raw.githubusercontent.com/emberstack/helm-charts/main/assets/helm_icon_generic.png
+keywords:
+- gateway
+- gateway-api
+- httproute
+- referencegrant
+- networking
+home: https://github.com/emberstack/helm-charts
+sources:
+- https://github.com/emberstack/helm-charts
+maintainers:
+- name: emberstack
+  email: helm-charts@emberstack.com
+dependencies:
+  - name: common
+    version: "1.x.x"
+    repository: "file://../common"

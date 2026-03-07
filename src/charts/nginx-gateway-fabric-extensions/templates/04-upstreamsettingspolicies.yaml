@@ -1,0 +1,35 @@
+{{- range .Values.upstreamSettingsPolicies }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.nginx.org/v1alpha1
+kind: UpstreamSettingsPolicy
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  targetRefs:
+    {{- range $item.targetRefs }}
+    - group: {{ .group | default "" | quote }}
+      kind: {{ .kind | default "Service" }}
+      name: {{ .name }}
+    {{- end }}
+  {{- if $item.zoneSize }}
+  zoneSize: {{ $item.zoneSize }}
+  {{- end }}
+  {{- if $item.loadBalancingMethod }}
+  loadBalancingMethod: {{ $item.loadBalancingMethod }}
+  {{- end }}
+  {{- if $item.hashMethodKey }}
+  hashMethodKey: {{ $item.hashMethodKey }}
+  {{- end }}
+  {{- if $item.keepAlive }}
+  keepAlive:
+    {{- toYaml $item.keepAlive | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

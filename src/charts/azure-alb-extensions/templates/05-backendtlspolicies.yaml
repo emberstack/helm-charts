@@ -1,0 +1,31 @@
+{{- range .Values.backendTLSPolicies }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: alb.networking.azure.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $ }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  targetRef:
+    group: {{ $item.targetRef.group | default "" | quote }}
+    kind: {{ $item.targetRef.kind | default "Service" }}
+    name: {{ $item.targetRef.name }}
+    {{- if $item.targetRef.namespace }}
+    namespace: {{ $item.targetRef.namespace }}
+    {{- end }}
+    {{- if $item.targetRef.sectionNames }}
+    sectionNames:
+      {{- toYaml $item.targetRef.sectionNames | nindent 6 }}
+    {{- end }}
+  {{- if $item.default }}
+  default:
+    {{- toYaml $item.default | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}
