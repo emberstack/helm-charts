@@ -1,0 +1,20 @@
+# This is a library chart - it does not deploy resources on its own.
+# Consuming charts should support the following global values:
+#
+# global:
+#   imageRegistry: ""
+#   imagePullSecrets: []
+#   storageClass: ""
+#   defaultStorageClass: ""
+#   kubeVersion: ""
+#   apiVersions: []
+#   compatibility:
+#     openshift:
+#       adaptSecurityContext: "auto"   # "auto" | "force" | "disabled"
+#     omitEmptySeLinuxOptions: false
+#
+# nameOverride: ""
+# fullnameOverride: ""
+# namespaceOverride: ""
+# commonLabels: {}
+# commonAnnotations: {}
