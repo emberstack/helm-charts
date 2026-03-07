@@ -1,22 +1,16 @@
 {{- range .Values.applications }}
 {{- $item := . -}}
-{{- if $item.enabled }}
-{{- $fullName := $item.fullnameOverride | default (print (include "argo-cd-extensions.fullname" $) "-" $item.name) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: {{ $fullName }}
-  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) }}
   labels:
-    {{- include "argo-cd-extensions.labels" $ | nindent 4 }}
-    {{- with $item.labels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-  {{- if $item.annotations }}
-  annotations:
-    {{- toYaml $item.annotations | nindent 4 }}
-  {{- end }}
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
   {{- if $item.finalizers }}
   finalizers:
     {{- toYaml $item.finalizers | nindent 4 }}
@@ -25,10 +19,10 @@ spec:
   project: {{ $item.project | default "default" }}
   {{- if $item.source }}
   source:
-    {{- $item.source | toYaml | nindent 4 }}
+    {{- toYaml $item.source | nindent 4 }}
   {{- else if $item.sources }}
   sources:
-    {{- $item.sources | toYaml | nindent 4 }}
+    {{- toYaml $item.sources | nindent 4 }}
   {{- else }}
   {{- fail "Either source or sources is required for Application" }}
   {{- end }}
@@ -39,7 +33,6 @@ spec:
     {{- else if $item.destination.name }}
     name: {{ $item.destination.name }}
     {{- else }}
-    # Default to in-cluster server when destination is specified but server/name is not
     server: https://kubernetes.default.svc
     {{- end }}
     {{- if $item.destination.namespace }}
@@ -48,28 +41,27 @@ spec:
     namespace: {{ $.Release.Namespace }}
     {{- end }}
     {{- else }}
-    # Default destination to in-cluster
     server: https://kubernetes.default.svc
     namespace: {{ $.Release.Namespace }}
     {{- end }}
   {{- if $item.ignoreDifferences }}
   ignoreDifferences:
-    {{- $item.ignoreDifferences | toYaml | nindent 4 }}
+    {{- toYaml $item.ignoreDifferences | nindent 4 }}
   {{- end }}
   {{- if $item.info }}
   info:
-    {{- $item.info | toYaml | nindent 4 }}
+    {{- toYaml $item.info | nindent 4 }}
   {{- end }}
   {{- if $item.revisionHistoryLimit }}
   revisionHistoryLimit: {{ $item.revisionHistoryLimit }}
   {{- end }}
   {{- if $item.syncPolicy }}
   syncPolicy:
-    {{- $item.syncPolicy | toYaml | nindent 4 }}
+    {{- toYaml $item.syncPolicy | nindent 4 }}
   {{- end }}
 {{- if $item.operation }}
 operation:
-  {{- $item.operation | toYaml | nindent 2 }}
+  {{- toYaml $item.operation | nindent 2 }}
 {{- end }}
 {{- end }}
 {{- end }}

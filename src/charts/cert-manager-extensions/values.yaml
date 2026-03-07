@@ -1,5 +1,8 @@
 nameOverride: ""
 fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
 
 issuers: []
 clusterIssuers: []

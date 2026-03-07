@@ -1,69 +1,63 @@
 {{- range .Values.appProjects }}
 {{- $item := . -}}
-{{- if $item.enabled }}
-{{- $fullName := $item.fullnameOverride | default (print (include "argo-cd-extensions.fullname" $) "-" $item.name) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
   name: {{ $fullName }}
-  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) }}
   labels:
-    {{- include "argo-cd-extensions.labels" $ | nindent 4 }}
-    {{- with $item.labels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-  {{- if $item.annotations }}
-  annotations:
-    {{- toYaml $item.annotations | nindent 4 }}
-  {{- end }}
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   {{- if $item.description }}
   description: {{ $item.description }}
   {{- end }}
   {{- if $item.clusterResourceWhitelist }}
   clusterResourceWhitelist:
-    {{- $item.clusterResourceWhitelist | toYaml | nindent 4 }}
+    {{- toYaml $item.clusterResourceWhitelist | nindent 4 }}
   {{- end }}
   {{- if $item.clusterResourceBlacklist }}
   clusterResourceBlacklist:
-    {{- $item.clusterResourceBlacklist | toYaml | nindent 4 }}
+    {{- toYaml $item.clusterResourceBlacklist | nindent 4 }}
   {{- end }}
   {{- if $item.namespaceResourceWhitelist }}
   namespaceResourceWhitelist:
-    {{- $item.namespaceResourceWhitelist | toYaml | nindent 4 }}
+    {{- toYaml $item.namespaceResourceWhitelist | nindent 4 }}
   {{- end }}
   {{- if $item.namespaceResourceBlacklist }}
   namespaceResourceBlacklist:
-    {{- $item.namespaceResourceBlacklist | toYaml | nindent 4 }}
+    {{- toYaml $item.namespaceResourceBlacklist | nindent 4 }}
   {{- end }}
   {{- if $item.destinations }}
   destinations:
-    {{- $item.destinations | toYaml | nindent 4 }}
+    {{- toYaml $item.destinations | nindent 4 }}
   {{- end }}
   {{- if $item.sourceRepos }}
   sourceRepos:
-    {{- $item.sourceRepos | toYaml | nindent 4 }}
+    {{- toYaml $item.sourceRepos | nindent 4 }}
   {{- end }}
   {{- if $item.sourceNamespaces }}
   sourceNamespaces:
-    {{- $item.sourceNamespaces | toYaml | nindent 4 }}
+    {{- toYaml $item.sourceNamespaces | nindent 4 }}
   {{- end }}
   {{- if $item.orphanedResources }}
   orphanedResources:
-    {{- $item.orphanedResources | toYaml | nindent 4 }}
+    {{- toYaml $item.orphanedResources | nindent 4 }}
   {{- end }}
   {{- if $item.syncWindows }}
   syncWindows:
-    {{- $item.syncWindows | toYaml | nindent 4 }}
+    {{- toYaml $item.syncWindows | nindent 4 }}
   {{- end }}
   {{- if $item.roles }}
   roles:
-    {{- $item.roles | toYaml | nindent 4 }}
+    {{- toYaml $item.roles | nindent 4 }}
   {{- end }}
   {{- if $item.signatureKeys }}
   signatureKeys:
-    {{- $item.signatureKeys | toYaml | nindent 4 }}
+    {{- toYaml $item.signatureKeys | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

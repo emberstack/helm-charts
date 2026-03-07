@@ -1,23 +1,17 @@
 {{- range .Values.issuers }}
 {{- $item := . -}}
-{{- if $item.enabled }}
-{{- $fullName := $item.fullnameOverride | default (print (include "cert-manager-extensions.fullname" $) "-" $item.name) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 {{- $privateKeySecretRefName := print $fullName "-private-key" }}
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ $fullName}}
-  namespace: {{ $item.namespace | default $.Release.Namespace | default "default" }}
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) }}
   labels:
-    {{- include "cert-manager-extensions.labels" $ | nindent 4 }}
-    {{- with $item.labels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-  {{- if $item.annotations }}
-  annotations:
-    {{- toYaml $item.annotations | nindent 4 }}
-  {{- end }}
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   {{- if $item.acme }}
   acme:

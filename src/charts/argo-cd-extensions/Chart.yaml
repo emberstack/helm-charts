@@ -18,3 +18,7 @@ sources:
 maintainers:
 - name: emberstack
   email: helm-charts@emberstack.com
+dependencies:
+  - name: common
+    version: "1.x.x"
+    repository: "file://../common"
