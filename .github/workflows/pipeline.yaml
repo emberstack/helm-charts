@@ -138,6 +138,15 @@ jobs:
       - name: tools - helm - install
         uses: azure/setup-helm@v4
 
+      - name: helm - dependency build
+        run: |
+          for dir in src/charts/*; do
+            [ -d "$dir" ] || continue
+            if [ -f "$dir/Chart.lock" ] || grep -q '^dependencies:' "$dir/Chart.yaml" 2>/dev/null; then
+              helm dependency build "$dir"
+            fi
+          done
+
       - name: helm - package
         run: |
           for dir in src/charts/*; do
