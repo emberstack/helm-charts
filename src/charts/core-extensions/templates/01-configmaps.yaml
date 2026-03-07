@@ -14,11 +14,11 @@ metadata:
 {{- if or $item.data $item.binaryData }}
 {{- if $item.data }}
 data:
-  {{- toYaml $item.data | nindent 2 }}
+  {{- include "common.tplvalues.render" (dict "value" $item.data "context" $) | nindent 2 }}
 {{- end }}
 {{- if $item.binaryData }}
 binaryData:
-  {{- toYaml $item.binaryData | nindent 2 }}
+  {{- include "common.tplvalues.render" (dict "value" $item.binaryData "context" $) | nindent 2 }}
 {{- end }}
 {{- else }}
 data: {}
