@@ -1,15 +1,13 @@
-# external-dns Helm Extensions
+# Core Helm Extensions
 
-This chart provides templates for external-dns CRDs. It can be used as the base for dynamic resources.
-
-> Requirements: external-dns installed in the cluster.
+This chart provides templates for core Kubernetes resources such as ConfigMaps and Secrets. It can be used as the base for dynamic resources.
 
 ## Installation
 
 ### Using OCI registry (recommended)
 
 ```bash
-helm install external-dns-extensions oci://ghcr.io/emberstack/helm-charts/external-dns-extensions
+helm install core-extensions oci://ghcr.io/emberstack/helm-charts/core-extensions
 ```
 
 ### Using Helm repository
@@ -17,7 +15,7 @@ helm install external-dns-extensions oci://ghcr.io/emberstack/helm-charts/extern
 ```bash
 helm repo add emberstack https://emberstack.github.io/helm-charts
 helm repo update
-helm upgrade --install external-dns-extensions emberstack/external-dns-extensions
+helm upgrade --install core-extensions emberstack/core-extensions
 ```
 
 ## Parameters
@@ -29,4 +27,5 @@ helm upgrade --install external-dns-extensions emberstack/external-dns-extension
 | `namespaceOverride` | Override namespace | `""` |
 | `commonLabels` | Labels added to all resources | `{}` |
 | `commonAnnotations` | Annotations added to all resources | `{}` |
-| `dnsEndpoints` | Array of DNSEndpoints | `[]` |
+| `configMaps` | Array of ConfigMaps | `[]` |
+| `secrets` | Array of Secrets | `[]` |

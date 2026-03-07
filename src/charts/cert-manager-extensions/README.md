@@ -1,20 +1,34 @@
 # cert-manager Helm Extensions
+
 This chart provides templates for cert-manager CRDs. It can be used as the base for dynamic resources.
+
 > Requirements: cert-manager installed in the cluster.
 
-### Deployment to Kubernetes using Helm
+## Installation
 
-Use Helm to install the latest released chart:
-```shellsession
-$ helm repo add emberstack https://emberstack.github.io/helm-charts
-$ helm repo update
-$ helm upgrade --install cert-manager-extensions emberstack/cert-manager-extensions
+### Using OCI registry (recommended)
+
+```bash
+helm install cert-manager-extensions oci://ghcr.io/emberstack/helm-charts/cert-manager-extensions
 ```
 
-You can customize the values of the helm deployment by using the following Values:
+### Using Helm repository
 
-| Parameter                            | Description                                       | Default               |
-| ------------------------------------ | --------------------------------------------------| --------------------- |
-| `clusterIssuers`                     | Array of ClusterIssuers to template               | `[]`                  |
-| `issuer`                             | Array of Issuers to template                      | `[]`                  |
-| `certificates`                       | Array of Certificates to template                 | `[]`                  |
+```bash
+helm repo add emberstack https://emberstack.github.io/helm-charts
+helm repo update
+helm upgrade --install cert-manager-extensions emberstack/cert-manager-extensions
+```
+
+## Parameters
+
+| Parameter | Description | Default |
+|---|---|---|
+| `nameOverride` | Override chart name | `""` |
+| `fullnameOverride` | Override fully qualified app name | `""` |
+| `namespaceOverride` | Override namespace | `""` |
+| `commonLabels` | Labels added to all resources | `{}` |
+| `commonAnnotations` | Annotations added to all resources | `{}` |
+| `issuers` | Array of Issuers | `[]` |
+| `clusterIssuers` | Array of ClusterIssuers | `[]` |
+| `certificates` | Array of Certificates | `[]` |

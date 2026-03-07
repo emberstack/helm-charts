@@ -2,10 +2,22 @@
 
 A generic application Helm chart for deploying any containerized workload on Kubernetes. Supports Deployment and CronJob modes, Gateway API HTTPRoute, Ingress, RBAC, autoscaling, and more.
 
-## Usage
+## Installation
+
+### Using OCI registry (recommended)
 
 ```bash
 helm install my-release oci://ghcr.io/emberstack/helm-charts/generic \
+  --set image.repository=nginx \
+  --set image.tag=latest
+```
+
+### Using Helm repository
+
+```bash
+helm repo add emberstack https://emberstack.github.io/helm-charts
+helm repo update
+helm upgrade --install my-release emberstack/generic \
   --set image.repository=nginx \
   --set image.tag=latest
 ```
