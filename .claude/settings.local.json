@@ -7,7 +7,9 @@
       "Bash(helm lint:*)",
       "Bash(helm template:*)",
       "Bash(helm version:*)",
-      "Bash(helm dependency:*)"
+      "Bash(helm dependency:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

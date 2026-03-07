@@ -331,3 +331,7 @@ ASALocalRun/
 
 # Claude Code
 .claude/
+
+# Helm dependency build artifacts
+**/charts/*.tgz
+**/Chart.lock

@@ -27,11 +27,15 @@ Usage:
 {{/*
 Render pod security context. On OpenShift, omits fsGroup, runAsUser, runAsGroup, empty seLinuxOptions.
 Always strips the "enabled" key (Bitnami toggle convention).
+If enabled is explicitly false, returns empty (no security context rendered).
 Usage:
   {{ include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}
 */}}
 {{- define "common.security.renderPodSecurityContext" -}}
 {{- if .secContext -}}
+  {{- if and (hasKey .secContext "enabled") (not .secContext.enabled) -}}
+    {{/* enabled: false — skip rendering */ -}}
+  {{- else -}}
   {{- $sc := omit .secContext "enabled" -}}
   {{- if include "common.security.isOpenshift" .context -}}
     {{- $sc = omit $sc "fsGroup" "runAsUser" "runAsGroup" -}}
@@ -57,17 +61,22 @@ Usage:
   {{- if $sc }}
     {{- $sc | toYaml }}
   {{- end -}}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
 Render container security context. On OpenShift, omits runAsUser, runAsGroup, empty seLinuxOptions.
 Does NOT omit fsGroup (pod-level only). Always strips the "enabled" key.
+If enabled is explicitly false, returns empty (no security context rendered).
 Usage:
   {{ include "common.security.renderContainerSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) }}
 */}}
 {{- define "common.security.renderContainerSecurityContext" -}}
 {{- if .secContext -}}
+  {{- if and (hasKey .secContext "enabled") (not .secContext.enabled) -}}
+    {{/* enabled: false — skip rendering */ -}}
+  {{- else -}}
   {{- $sc := omit .secContext "enabled" -}}
   {{- if include "common.security.isOpenshift" .context -}}
     {{- $sc = omit $sc "runAsUser" "runAsGroup" -}}
@@ -92,6 +101,7 @@ Usage:
   {{- end -}}
   {{- if $sc }}
     {{- $sc | toYaml }}
+  {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- end -}}

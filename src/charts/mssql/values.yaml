@@ -1,0 +1,275 @@
+## @section Global parameters
+## Global values shared across parent and subcharts.
+global: {}
+  # image:
+  #   registry: ""       # Override image registry for all containers
+  #   tag: ""            # Override image tag for all containers
+  #   pullSecrets: []    # Pull secrets for all containers
+  # podLabels: {}        # Labels added to all pods across subcharts
+  # podAnnotations: {}   # Annotations added to all pods across subcharts
+  # extraEnvVars: []     # Env vars injected into all containers across subcharts
+  # serviceAccount:
+  #   create: true       # Override service account creation across subcharts
+  #   name: ""           # Override service account name across subcharts
+  # storageClass: ""
+  # kubeVersion: ""
+  # compatibility:
+  #   openshift:
+  #     adaptSecurityContext: ""   # force | disabled | auto (default)
+
+## @section Common parameters
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+extraObjects: []
+
+## @section Image parameters
+image:
+  registry: mcr.microsoft.com
+  repository: mssql/server
+  tag: 2025-latest
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+## @section SQL Server configuration
+configuration:
+  ## acceptEula must be set to true (sets ACCEPT_EULA=Y)
+  acceptEula: false
+  ## SQL Server edition: Developer, Express, Standard, Enterprise, EnterpriseCore
+  ## SQL Server 2025 also supports: StandardDeveloper, EnterpriseDeveloper, Evaluation
+  edition: "Developer"
+  ## SA password — required unless existingSecret is set
+  saPassword: ""
+  ## Use an existing secret for SA password
+  existingSecret: ""
+  ## Key in the existing secret that contains the SA password
+  existingSecretKey: "saPassword"
+  ## Database collation (e.g. SQL_Latin1_General_CP1_CI_AS)
+  collation: ""
+  ## Language ID (e.g. 1036 for French)
+  lcid: ""
+  ## Max memory in MB (default: 80% of physical)
+  memoryLimitMb: ""
+  ## TCP port (default: 1433)
+  tcpPort: ""
+  ## Enable SQL Server Agent
+  agentEnabled: false
+  ## Enable Always On Availability Groups
+  hadrEnabled: false
+  ## Custom data file directory
+  dataDir: ""
+  ## Custom log file directory
+  logDir: ""
+  ## Custom backup directory
+  backupDir: ""
+  ## Custom dump directory
+  dumpDir: ""
+
+## @section Deployment parameters
+deployment:
+  enabled: true
+  replicaCount: 1
+  revisionHistoryLimit: 3
+  updateStrategy:
+    type: RollingUpdate
+  annotations: {}
+  labels: {}
+  minReadySeconds: ""
+
+## @section Diagnostic mode
+## Overrides command, args, probes, and lifecycleHooks for debugging.
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Container parameters
+command: []
+args: []
+
+containerPort: 1433
+extraContainerPorts: []
+# - name: metrics
+#   containerPort: 9090
+#   protocol: TCP
+
+## Probes - set custom*Probe to override defaults. diagnosticMode disables all.
+livenessProbe:
+  tcpSocket:
+    port: mssql
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+customLivenessProbe: {}
+
+readinessProbe:
+  tcpSocket:
+    port: mssql
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+customReadinessProbe: {}
+
+startupProbe:
+  tcpSocket:
+    port: mssql
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+customStartupProbe: {}
+
+resources: {}
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+# limits:
+#   cpu: 250m
+#   memory: 256Mi
+resourcesPreset: ""   # nano, micro, small, medium, large, xlarge, 2xlarge
+
+lifecycleHooks: {}
+# postStart:
+#   exec:
+#     command: ["/bin/sh", "-c", "echo started"]
+
+extraEnvVars: []
+# - name: FOO
+#   value: bar
+extraEnvVarsCM: ""
+extraEnvVarsSecret: ""
+
+extraVolumeMounts: []
+extraVolumes: []
+
+## @section Pod parameters
+podLabels: {}
+podAnnotations: {}
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 10001
+
+containerSecurityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 10001
+  allowPrivilegeEscalation: false
+
+## Affinity presets (convenience). Override with 'affinity' for full control.
+podAffinityPreset: ""        # soft | hard
+podAntiAffinityPreset: ""    # soft | hard
+nodeAffinityPreset:
+  type: ""                   # soft | hard
+  key: ""
+  values: []
+affinity: {}
+
+nodeSelector: {}
+tolerations: []
+topologySpreadConstraints: []
+priorityClassName: ""
+schedulerName: ""
+terminationGracePeriodSeconds: ""
+dnsPolicy: ""
+dnsConfig: {}
+hostNetwork: false
+
+initContainers: []
+sidecars: []
+
+## @section Service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @section RBAC
+rbac:
+  create: false
+  clusterRole:
+    rules: []
+    # - apiGroups: [""]
+    #   resources: ["secrets"]
+    #   verbs: ["list", "watch"]
+  role:
+    rules: []
+
+## @section Service parameters
+service:
+  enabled: true
+  type: ClusterIP
+  port: 1433
+  targetPort: mssql
+  nodePort: ""
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: ""
+  annotations: {}
+  labels: {}
+  extraPorts: []
+  # - name: metrics
+  #   port: 9090
+  #   targetPort: metrics
+
+## @section PodDisruptionBudget parameters
+pdb:
+  enabled: false
+  minAvailable: ""
+  maxUnavailable: 1
+
+## @section NetworkPolicy parameters
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+  # Allow DNS resolution by default
+  allowExternalDNS: true
+
+## @section ServiceMonitor parameters (Prometheus Operator)
+## Use for scraping metrics via Service endpoints.
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  port: mssql
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: ""
+  labels: {}
+  annotations: {}
+  relabelings: []
+  metricRelabelings: []
+  honorLabels: false
+
+## @section ConfigMap parameters
+configMap:
+  enabled: false
+  data: {}
+  # key: value
+
+## @section Persistence parameters
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  existingClaim: ""
+  mountPath: /var/opt/mssql
+  subPath: ""
+  annotations: {}

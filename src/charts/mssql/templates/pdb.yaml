@@ -1,0 +1,22 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "mssql.fullname" . }}
+  namespace: {{ include "mssql.namespace" . }}
+  labels:
+    {{- include "mssql.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.pdb.minAvailable }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- else }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mssql.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
+{{- end }}

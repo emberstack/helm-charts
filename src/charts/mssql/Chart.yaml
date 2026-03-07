@@ -1,0 +1,22 @@
+apiVersion: v2
+name: mssql
+description: A Helm chart for deploying Microsoft SQL Server on Kubernetes
+type: application
+kubeVersion: ">= 1.24.0-0"
+version: 1.0.0
+appVersion: "2025"
+home: https://github.com/emberstack/helm-charts
+sources:
+  - https://github.com/emberstack/helm-charts
+maintainers:
+  - name: emberstack
+    email: helm-charts@emberstack.com
+keywords:
+  - mssql
+  - sqlserver
+  - database
+  - microsoft
+dependencies:
+  - name: common
+    version: "1.x.x"
+    repository: "file://../common"

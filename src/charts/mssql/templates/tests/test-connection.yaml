@@ -1,0 +1,18 @@
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "mssql.fullname" . }}-test-connection"
+  namespace: {{ include "mssql.namespace" . }}
+  labels:
+    {{- include "mssql.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  restartPolicy: Never
+  containers:
+    - name: tcp-test
+      image: busybox
+      command: ['sh', '-c']
+      args: ['nc -z {{ include "mssql.fullname" . }} {{ .Values.service.port }}']
+{{- end }}

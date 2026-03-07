@@ -1,0 +1,12 @@
+Microsoft SQL Server has been deployed.
+
+Connection details:
+  Host: {{ include "mssql.fullname" . }}.{{ include "mssql.namespace" . }}.svc.cluster.local
+  Port: {{ .Values.service.port }}
+  User: sa
+
+To get the SA password:
+  kubectl get secret {{ include "mssql.secretName" . }} -n {{ include "mssql.namespace" . }} -o jsonpath="{.data.{{ include "mssql.secretKey" . }}}" | base64 -d
+
+To connect from within the cluster:
+  sqlcmd -S {{ include "mssql.fullname" . }}.{{ include "mssql.namespace" . }}.svc.cluster.local,{{ .Values.service.port }} -U sa -P <password>

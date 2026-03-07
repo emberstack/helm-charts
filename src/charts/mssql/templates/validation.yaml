@@ -1,0 +1,5 @@
+{{- $config := default dict .Values.configuration -}}
+
+{{- if not $config.acceptEula }}
+  {{- fail "configuration.acceptEula must be set to true (sets ACCEPT_EULA=Y for Microsoft SQL Server)" }}
+{{- end }}

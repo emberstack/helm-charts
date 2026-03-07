@@ -145,8 +145,12 @@ jobs:
             helm_chart=$(basename "$dir")
             dest_dir=".artifacts/helm"
             mkdir -p "$dest_dir"
-            helm package "$dir" --destination "$dest_dir" --version ${{ env.gitVersion_SemVer }} --app-version ${{ env.gitVersion_SemVer }}
-            echo "Packaged $helm_chart to $dest_dir"
+            app_version=$(grep '^appVersion:' "$dir/Chart.yaml" | awk '{print $2}' | tr -d '"')
+            if [ -z "$app_version" ]; then
+              app_version="${{ env.gitVersion_SemVer }}"
+            fi
+            helm package "$dir" --destination "$dest_dir" --version ${{ env.gitVersion_SemVer }} --app-version "$app_version"
+            echo "Packaged $helm_chart (appVersion: $app_version) to $dest_dir"
           done
 
       - name: artifacts - helm - upload

@@ -1,0 +1,15 @@
+{{- if .Values.configMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mssql.fullname" . }}
+  namespace: {{ include "mssql.namespace" . }}
+  labels:
+    {{- include "mssql.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+data:
+  {{- include "common.tplvalues.render" (dict "value" .Values.configMap.data "context" $) | nindent 2 }}
+{{- end }}
