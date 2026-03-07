@@ -1,0 +1,22 @@
+{{- if .Values.deployment.enabled }}
+{{ include "generic.fullname" . }} has been deployed as a Deployment.
+{{- end }}
+{{- if .Values.cronJob.enabled }}
+{{ include "generic.fullname" . }} has been deployed as a CronJob with schedule: {{ .Values.cronJob.schedule }}
+{{- end }}
+
+{{- if .Values.service.enabled }}
+
+Access the service:
+  kubectl port-forward svc/{{ include "generic.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ include "generic.namespace" . }}
+{{- end }}
+
+{{- if .Values.ingress.enabled }}
+
+Ingress is enabled at: {{ .Values.ingress.hostname }}
+{{- end }}
+
+{{- if .Values.httpRoute.enabled }}
+
+HTTPRoute is enabled.
+{{- end }}

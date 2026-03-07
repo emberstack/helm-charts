@@ -1,0 +1,15 @@
+{{/*
+Validation rules - fail fast on invalid configuration.
+*/}}
+
+{{- if and .Values.deployment.enabled .Values.cronJob.enabled }}
+  {{- fail "deployment.enabled and cronJob.enabled cannot both be true. Set exactly one." }}
+{{- end }}
+
+{{- if and .Values.cronJob.enabled (not .Values.cronJob.schedule) }}
+  {{- fail "cronJob.schedule is required when cronJob.enabled is true." }}
+{{- end }}
+
+{{- if not .Values.image.repository }}
+  {{- fail "image.repository is required." }}
+{{- end }}

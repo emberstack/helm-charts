@@ -28,7 +28,7 @@ Usage:
   {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
   {{- $name := default .Chart.Name .Values.nameOverride }}
-  {{- $releaseName := .Release.Name | regexReplaceAll "[^a-zA-Z0-9-]" "-" | lower }}
+  {{- $releaseName := regexReplaceAll "[^a-zA-Z0-9-]" .Release.Name "-" | lower }}
   {{- if contains $name $releaseName }}
     {{- $releaseName | trunc 63 | trimSuffix "-" }}
   {{- else }}
@@ -47,7 +47,7 @@ Usage:
   {{- .chartValues.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
   {{- $name := default .chartName .chartValues.nameOverride }}
-  {{- $releaseName := .context.Release.Name | regexReplaceAll "[^a-zA-Z0-9-]" "-" | lower }}
+  {{- $releaseName := regexReplaceAll "[^a-zA-Z0-9-]" .context.Release.Name "-" | lower }}
   {{- if contains $name $releaseName }}
     {{- $releaseName | trunc 63 | trimSuffix "-" }}
   {{- else }}

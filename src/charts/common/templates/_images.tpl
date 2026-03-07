@@ -1,6 +1,6 @@
 {{/*
 Return the proper Docker image name.
-Supports global.imageRegistry override, digest, and tag fallback to chart appVersion.
+Supports global.image.registry, global.image.tag override, digest, and tag fallback to chart appVersion.
 Usage:
   {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) }}
 */}}
@@ -10,11 +10,13 @@ Usage:
 {{- $separator := ":" -}}
 {{- $termination := .imageRoot.tag | default "" | toString -}}
 {{- if .global }}
-  {{- if .global.imageRegistry }}
-    {{- $registryName = .global.imageRegistry -}}
-  {{- end -}}
-  {{- if .global.imageTag }}
-    {{- $termination = .global.imageTag | toString -}}
+  {{- if .global.image }}
+    {{- if .global.image.registry }}
+      {{- $registryName = .global.image.registry -}}
+    {{- end -}}
+    {{- if .global.image.tag }}
+      {{- $termination = .global.image.tag | toString -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- if .imageRoot.digest }}
@@ -52,27 +54,19 @@ Usage:
 {{- $context := .context }}
 
 {{- if $context.Values.global }}
-  {{- range $context.Values.global.imagePullSecrets }}
-    {{- if kindIs "map" . }}
-      {{- $pullSecrets = append $pullSecrets .name }}
-    {{- else }}
-      {{- $pullSecrets = append $pullSecrets . }}
+  {{- if $context.Values.global.image }}
+    {{- range $context.Values.global.image.pullSecrets }}
+      {{- if kindIs "map" . }}
+        {{- $pullSecrets = append $pullSecrets .name }}
+      {{- else }}
+        {{- $pullSecrets = append $pullSecrets . }}
+      {{- end }}
     {{- end }}
   {{- end }}
 {{- end }}
 
 {{- range .images }}
   {{- range .pullSecrets }}
-    {{- if kindIs "map" . }}
-      {{- $pullSecrets = append $pullSecrets .name }}
-    {{- else }}
-      {{- $pullSecrets = append $pullSecrets . }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-
-{{- if $context.Values.imagePullSecrets }}
-  {{- range $context.Values.imagePullSecrets }}
     {{- if kindIs "map" . }}
       {{- $pullSecrets = append $pullSecrets .name }}
     {{- else }}

@@ -2,8 +2,10 @@
 # Consuming charts should support the following global values:
 #
 # global:
-#   imageRegistry: ""
-#   imagePullSecrets: []
+#   image:
+#     registry: ""
+#     tag: ""
+#     pullSecrets: []
 #   storageClass: ""
 #   defaultStorageClass: ""
 #   kubeVersion: ""

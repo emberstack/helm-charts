@@ -4,7 +4,10 @@
       "Bash(kubectl get:*)",
       "Bash(kubectl explain:*)",
       "Bash(kubectl api-resources:*)",
-      "Bash(helm lint:*)"
+      "Bash(helm lint:*)",
+      "Bash(helm template:*)",
+      "Bash(helm version:*)",
+      "Bash(helm dependency:*)"
     ],
     "deny": [],
     "ask": []

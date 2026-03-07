@@ -1,0 +1,190 @@
+{{- if .Values.cronJob.enabled }}
+apiVersion: {{ include "common.capabilities.cronjob.apiVersion" . }}
+kind: CronJob
+metadata:
+  name: {{ include "generic.fullname" . }}
+  namespace: {{ include "generic.namespace" . }}
+  labels:
+    {{- include "generic.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- with .Values.cronJob.labels }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.cronJob.annotations .Values.commonAnnotations) "context" $) | fromYaml }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy | quote }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  {{- if .Values.cronJob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.cronJob.startingDeadlineSeconds }}
+  {{- end }}
+  suspend: {{ .Values.cronJob.suspend }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.cronJob.backoffLimit }}
+      {{- if .Values.cronJob.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ .Values.cronJob.activeDeadlineSeconds }}
+      {{- end }}
+      {{- if .Values.cronJob.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ .Values.cronJob.ttlSecondsAfterFinished }}
+      {{- end }}
+      template:
+        metadata:
+          labels:
+            {{- include "generic.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 12 }}
+            {{- $podLabels := include "generic.podLabels" . }}
+            {{- if $podLabels }}
+            {{- $podLabels | nindent 12 }}
+            {{- end }}
+          {{- $podAnnotations := include "generic.podAnnotations" . }}
+          {{- if $podAnnotations }}
+          annotations:
+            {{- $podAnnotations | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 10 }}
+          serviceAccountName: {{ include "generic.serviceAccountName" . }}
+          restartPolicy: {{ .Values.cronJob.restartPolicy | quote }}
+          {{- if .Values.schedulerName }}
+          schedulerName: {{ .Values.schedulerName | quote }}
+          {{- end }}
+          {{- if .Values.priorityClassName }}
+          priorityClassName: {{ .Values.priorityClassName | quote }}
+          {{- end }}
+          {{- if .Values.terminationGracePeriodSeconds }}
+          terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+          {{- end }}
+          {{- if .Values.hostNetwork }}
+          hostNetwork: true
+          {{- end }}
+          {{- if .Values.dnsPolicy }}
+          dnsPolicy: {{ .Values.dnsPolicy | quote }}
+          {{- end }}
+          {{- with .Values.dnsConfig }}
+          dnsConfig:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $podSecurityContext := include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}
+          {{- if $podSecurityContext }}
+          securityContext:
+            {{- $podSecurityContext | nindent 12 }}
+          {{- end }}
+          {{- if .Values.affinity }}
+          affinity:
+            {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 12 }}
+          {{- else if or .Values.podAffinityPreset .Values.podAntiAffinityPreset (and .Values.nodeAffinityPreset.type .Values.nodeAffinityPreset.key) }}
+          affinity:
+            {{- if .Values.podAffinityPreset }}
+            podAffinity:
+              {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "customLabels" .Values.podLabels "context" $) | nindent 14 }}
+            {{- end }}
+            {{- if .Values.podAntiAffinityPreset }}
+            podAntiAffinity:
+              {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "customLabels" .Values.podLabels "context" $) | nindent 14 }}
+            {{- end }}
+            {{- if and .Values.nodeAffinityPreset.type .Values.nodeAffinityPreset.key }}
+            nodeAffinity:
+              {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 14 }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.topologySpreadConstraints }}
+          topologySpreadConstraints:
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.initContainers }}
+          initContainers:
+            {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: {{ .Chart.Name }}
+              image: {{ include "generic.image" . }}
+              imagePullPolicy: {{ include "generic.imagePullPolicy" . }}
+              {{- if or .Values.command .Values.diagnosticMode.enabled }}
+              command:
+                {{- if .Values.diagnosticMode.enabled }}
+                {{- toYaml .Values.diagnosticMode.command | nindent 16 }}
+                {{- else }}
+                {{- toYaml .Values.command | nindent 16 }}
+                {{- end }}
+              {{- end }}
+              {{- if or .Values.args .Values.diagnosticMode.enabled }}
+              args:
+                {{- if .Values.diagnosticMode.enabled }}
+                {{- toYaml .Values.diagnosticMode.args | nindent 16 }}
+                {{- else }}
+                {{- toYaml .Values.args | nindent 16 }}
+                {{- end }}
+              {{- end }}
+              {{- $containerSecurityContext := include "common.security.renderContainerSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) }}
+              {{- if $containerSecurityContext }}
+              securityContext:
+                {{- $containerSecurityContext | nindent 16 }}
+              {{- end }}
+              {{- $envVars := include "generic.extraEnvVars" . }}
+              {{- if $envVars }}
+              env:
+                {{- $envVars | nindent 16 }}
+              {{- end }}
+              {{- if or .Values.extraEnvVarsCM .Values.extraEnvVarsSecret }}
+              envFrom:
+                {{- if .Values.extraEnvVarsCM }}
+                - configMapRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsCM "context" $) }}
+                {{- end }}
+                {{- if .Values.extraEnvVarsSecret }}
+                - secretRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+                {{- end }}
+              {{- end }}
+              {{- if .Values.resources }}
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              {{- else if .Values.resourcesPreset }}
+              resources:
+                {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 16 }}
+              {{- end }}
+              {{- if or .Values.persistence.enabled .Values.extraVolumeMounts }}
+              volumeMounts:
+                {{- if .Values.persistence.enabled }}
+                - name: data
+                  mountPath: {{ .Values.persistence.mountPath }}
+                  {{- if .Values.persistence.subPath }}
+                  subPath: {{ .Values.persistence.subPath }}
+                  {{- end }}
+                {{- end }}
+                {{- with .Values.extraVolumeMounts }}
+                {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 16 }}
+                {{- end }}
+              {{- end }}
+            {{- if .Values.sidecars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.persistence.enabled .Values.extraVolumes }}
+          volumes:
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              {{- if .Values.persistence.existingClaim }}
+              persistentVolumeClaim:
+                claimName: {{ .Values.persistence.existingClaim }}
+              {{- else }}
+              persistentVolumeClaim:
+                claimName: {{ include "generic.fullname" . }}
+              {{- end }}
+            {{- end }}
+            {{- with .Values.extraVolumes }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- end }}
+          {{- end }}
+{{- end }}

@@ -1,0 +1,371 @@
+## @section Global parameters
+## Global values shared across parent and subcharts.
+global: {}
+  # image:
+  #   registry: ""       # Override image registry for all containers
+  #   tag: ""            # Override image tag for all containers
+  #   pullSecrets: []    # Pull secrets for all containers
+  # podLabels: {}        # Labels added to all pods across subcharts
+  # podAnnotations: {}   # Annotations added to all pods across subcharts
+  # extraEnvVars: []     # Env vars injected into all containers across subcharts
+  # serviceAccount:
+  #   create: true       # Override service account creation across subcharts
+  #   name: ""           # Override service account name across subcharts
+  # storageClass: ""
+  # kubeVersion: ""
+  # compatibility:
+  #   openshift:
+  #     adaptSecurityContext: ""   # force | disabled | auto (default)
+
+## @section Common parameters
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+extraObjects: []
+
+## @section Workload mode
+## Set exactly one of deployment.enabled or cronJob.enabled to true.
+
+## @section Image parameters
+image:
+  registry: ""
+  repository: ""
+  tag: ""
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+## @section Deployment parameters
+deployment:
+  enabled: true
+  replicaCount: 1
+  revisionHistoryLimit: 3
+  updateStrategy:
+    type: RollingUpdate
+  annotations: {}
+  labels: {}
+  minReadySeconds: ""
+
+## @section CronJob parameters
+cronJob:
+  enabled: false
+  schedule: ""
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  startingDeadlineSeconds: ""
+  suspend: false
+  backoffLimit: 6
+  activeDeadlineSeconds: ""
+  ttlSecondsAfterFinished: ""
+  restartPolicy: OnFailure
+  annotations: {}
+  labels: {}
+
+## @section Diagnostic mode
+## Overrides command, args, probes, and lifecycleHooks for debugging.
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Container parameters
+command: []
+args: []
+
+containerPort: 8080
+extraContainerPorts: []
+# - name: metrics
+#   containerPort: 9090
+#   protocol: TCP
+
+## Probes - set custom*Probe to override defaults. diagnosticMode disables all.
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+customLivenessProbe: {}
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+customReadinessProbe: {}
+
+startupProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+customStartupProbe: {}
+
+resources: {}
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+# limits:
+#   cpu: 250m
+#   memory: 256Mi
+resourcesPreset: ""   # nano, micro, small, medium, large, xlarge, 2xlarge
+
+lifecycleHooks: {}
+# postStart:
+#   exec:
+#     command: ["/bin/sh", "-c", "echo started"]
+
+extraEnvVars: []
+# - name: FOO
+#   value: bar
+extraEnvVarsCM: ""
+extraEnvVarsSecret: ""
+
+extraVolumeMounts: []
+extraVolumes: []
+
+## @section Pod parameters
+podLabels: {}
+podAnnotations: {}
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+## Affinity presets (convenience). Override with 'affinity' for full control.
+podAffinityPreset: ""        # soft | hard
+podAntiAffinityPreset: soft  # soft | hard
+nodeAffinityPreset:
+  type: ""                   # soft | hard
+  key: ""
+  values: []
+affinity: {}
+
+nodeSelector: {}
+tolerations: []
+topologySpreadConstraints: []
+priorityClassName: ""
+schedulerName: ""
+terminationGracePeriodSeconds: ""
+dnsPolicy: ""
+dnsConfig: {}
+hostNetwork: false
+
+initContainers: []
+sidecars: []
+
+## @section Service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @section RBAC
+rbac:
+  create: false
+  clusterRole:
+    rules: []
+    # - apiGroups: [""]
+    #   resources: ["secrets"]
+    #   verbs: ["list", "watch"]
+  role:
+    rules: []
+
+## @section Service parameters
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  nodePort: ""
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: ""
+  internalTrafficPolicy: ""
+  sessionAffinity: ""
+  sessionAffinityConfig: {}
+  # clientIP:
+  #   timeoutSeconds: 10800
+  annotations: {}
+  labels: {}
+  extraPorts: []
+  # - name: metrics
+  #   port: 9090
+  #   targetPort: metrics
+
+## @section Ingress parameters
+ingress:
+  enabled: false
+  ingressClassName: ""
+  hostname: ""
+  path: /
+  pathType: Prefix
+  annotations: {}
+  labels: {}
+  tls: false
+  extraHosts: []
+  # - name: extra.example.com
+  #   path: /
+  extraTls: []
+  # - hosts:
+  #     - extra.example.com
+  #   secretName: extra-tls
+  extraRules: []
+
+## @section HTTPRoute parameters (Gateway API)
+httpRoute:
+  enabled: false
+  parentRefs: []
+  # - name: my-gateway
+  #   namespace: gateway-ns
+  #   sectionName: https
+  hostnames: []
+  rules: []
+  # - matches:
+  #     - path:
+  #         type: PathPrefix
+  #         value: /
+  #   backendRefs:
+  #     - name: ""      # defaults to fullname
+  #       port: 80      # defaults to service.port
+  #       weight: 1
+  #       namespace: ""
+  #   filters:
+  #     - type: RequestHeaderModifier
+  #       requestHeaderModifier:
+  #         set:
+  #           - name: X-Forwarded-Proto
+  #             value: https
+  annotations: {}
+  labels: {}
+  ## HTTP→HTTPS redirect companion route
+  httpRedirect:
+    enabled: false
+    parentRefs: []
+    # - name: my-gateway
+    #   sectionName: http
+    hostnames: []        # defaults to httpRoute.hostnames
+    annotations: {}      # defaults to httpRoute.annotations
+    labels: {}           # defaults to httpRoute.labels
+    scheme: https
+    statusCode: 301
+    port: ""             # optional: redirect to specific port
+    path: {}             # optional: path redirect
+    # type: ReplaceFullPath
+    # replaceFullPath: /new-path
+
+## @section Autoscaling (HPA) parameters
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPU: 80
+  targetMemory: ""
+  behavior: {}
+  customMetrics: []
+
+## @section PodDisruptionBudget parameters
+pdb:
+  enabled: false
+  minAvailable: ""
+  maxUnavailable: 1
+
+## @section NetworkPolicy parameters
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+  # Allow DNS resolution by default
+  allowExternalDNS: true
+
+## @section ServiceMonitor parameters (Prometheus Operator)
+## Use for scraping metrics via Service endpoints.
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  port: http
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: ""
+  labels: {}
+  annotations: {}
+  relabelings: []
+  metricRelabelings: []
+  honorLabels: false
+
+## @section PodMonitor parameters (Prometheus Operator)
+## Use for scraping metrics directly from pods (e.g. CronJob mode or when no Service is used).
+podMonitor:
+  enabled: false
+  namespace: ""
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+  interval: 30s
+  scrapeTimeout: ""
+  labels: {}
+  annotations: {}
+  relabelings: []
+  metricRelabelings: []
+  honorLabels: false
+
+## @section ConfigMap parameters
+configMap:
+  enabled: false
+  data: {}
+  # key: value
+
+## @section Secret parameters
+secret:
+  enabled: false
+  type: Opaque
+  data: {}
+  # key: base64-encoded-value
+  stringData: {}
+  # key: plain-text-value
+
+## @section Persistence parameters
+persistence:
+  enabled: false
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  existingClaim: ""
+  mountPath: /data
+  subPath: ""
+  annotations: {}
