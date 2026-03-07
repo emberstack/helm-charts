@@ -77,7 +77,23 @@ spec:
     {{- if $redirect.parentRefs }}
     {{- include "common.tplvalues.render" (dict "value" $redirect.parentRefs "context" $) | nindent 4 }}
     {{- else }}
-    {{- include "common.tplvalues.render" (dict "value" .Values.httpRoute.parentRefs "context" $) | nindent 4 }}
+    {{- /* Derive redirect parentRefs from main route, swapping sectionName to "http" */ -}}
+    {{- range .Values.httpRoute.parentRefs }}
+    - name: {{ .name }}
+      sectionName: http
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+      {{- with .group }}
+      group: {{ . }}
+      {{- end }}
+      {{- with .kind }}
+      kind: {{ . }}
+      {{- end }}
+      {{- with .port }}
+      port: {{ . }}
+      {{- end }}
+    {{- end }}
     {{- end }}
   {{- $redirectHostnames := default .Values.httpRoute.hostnames $redirect.hostnames }}
   {{- with $redirectHostnames }}
