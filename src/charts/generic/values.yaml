@@ -37,6 +37,13 @@ image:
   pullPolicy: IfNotPresent
   pullSecrets: []
 
+## Image used for helm test pods
+testImage:
+  registry: docker.io
+  repository: busybox
+  tag: latest
+  pullPolicy: IfNotPresent
+
 ## @section Deployment parameters
 deployment:
   enabled: true

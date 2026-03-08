@@ -1,0 +1,4 @@
+{{- $config := default dict .Values.configuration -}}
+{{- if not (or $config.blobEnabled $config.queueEnabled $config.tableEnabled) }}
+  {{- fail "At least one Azurite service must be enabled (blobEnabled, queueEnabled, or tableEnabled)" }}
+{{- end }}

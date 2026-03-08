@@ -1,0 +1,817 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redis.fullname" . }}
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- with .Values.statefulSet.labels }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.statefulSet.annotations .Values.commonAnnotations) "context" $) | fromYaml }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "redis.fullname" . }}-headless
+  replicas: {{ include "redis.replicaCount" . }}
+  revisionHistoryLimit: {{ .Values.statefulSet.revisionHistoryLimit }}
+  {{- if .Values.statefulSet.minReadySeconds }}
+  minReadySeconds: {{ .Values.statefulSet.minReadySeconds }}
+  {{- end }}
+  podManagementPolicy: {{ .Values.statefulSet.podManagementPolicy }}
+  updateStrategy:
+    type: {{ .Values.statefulSet.updateStrategy.type | default "RollingUpdate" }}
+    {{- if eq (.Values.statefulSet.updateStrategy.type | default "RollingUpdate") "RollingUpdate" }}
+    {{- with .Values.statefulSet.updateStrategy.rollingUpdate }}
+    rollingUpdate:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "redis.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
+        {{- $podLabels := include "redis.podLabels" . }}
+        {{- if $podLabels }}
+        {{- $podLabels | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/health: {{ include (print $.Template.BasePath "/health-configmap.yaml") . | sha256sum }}
+        {{- if or .Values.config.content .Values.config.existingConfigMap }}
+        checksum/config: {{ .Values.config.content | default "" | sha256sum }}
+        {{- end }}
+        {{- if .Values.extraConfig }}
+        checksum/extra-config: {{ .Values.extraConfig | sha256sum }}
+        {{- end }}
+        {{- $podAnnotations := include "redis.podAnnotations" . }}
+        {{- if $podAnnotations }}
+        {{- $podAnnotations | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy | quote }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- $podSecurityContext := include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}
+      {{- if $podSecurityContext }}
+      securityContext:
+        {{- $podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else if or .Values.podAffinityPreset .Values.podAntiAffinityPreset (and .Values.nodeAffinityPreset.type .Values.nodeAffinityPreset.key) }}
+      affinity:
+        {{- if .Values.podAffinityPreset }}
+        podAffinity:
+          {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "customLabels" .Values.podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.podAntiAffinityPreset }}
+        podAntiAffinity:
+          {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "customLabels" .Values.podLabels "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if and .Values.nodeAffinityPreset.type .Values.nodeAffinityPreset.key }}
+        nodeAffinity:
+          {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if or (ne .Values.architecture "standalone") .Values.sysctl.enabled .Values.volumePermissions.enabled .Values.initContainers }}
+      initContainers:
+        {{- if .Values.sysctl.enabled }}
+        - name: sysctl
+          image: {{ printf "%s/%s:%s" .Values.sysctl.image.registry .Values.sysctl.image.repository .Values.sysctl.image.tag }}
+          imagePullPolicy: {{ .Values.sysctl.image.pullPolicy }}
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          command:
+            {{- toYaml .Values.sysctl.command | nindent 12 }}
+          {{- if .Values.sysctl.resources }}
+          resources:
+            {{- toYaml .Values.sysctl.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.sysctl.mountHostSys }}
+          volumeMounts:
+            - name: host-sys
+              mountPath: /sys
+          {{- end }}
+        {{- end }}
+        {{- if .Values.volumePermissions.enabled }}
+        - name: volume-permissions
+          image: {{ printf "%s/%s:%s" .Values.volumePermissions.image.registry .Values.volumePermissions.image.repository .Values.volumePermissions.image.tag }}
+          imagePullPolicy: {{ .Values.volumePermissions.image.pullPolicy }}
+          securityContext:
+            runAsUser: 0
+          command:
+            - /bin/sh
+            - -c
+            - chown -R {{ .Values.podSecurityContext.fsGroup | default 999 }}:{{ .Values.podSecurityContext.fsGroup | default 999 }} {{ .Values.persistence.mountPath }}
+          {{- if .Values.volumePermissions.resources }}
+          resources:
+            {{- toYaml .Values.volumePermissions.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+        {{- end }}
+        {{- if ne .Values.architecture "standalone" }}
+        - name: redis-init
+          image: {{ include "redis.image" . }}
+          imagePullPolicy: {{ include "redis.imagePullPolicy" . }}
+          {{- $containerSecurityContext := include "common.security.renderContainerSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) }}
+          {{- if $containerSecurityContext }}
+          securityContext:
+            {{- $containerSecurityContext | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              POD_ORDINAL=$(hostname | sed 's/.*-//')
+              touch /tmp/redis.conf
+
+              {{- if eq .Values.architecture "replication" }}
+              {{- if .Values.sentinel.enabled }}
+              # Sentinel-aware bootstrap: discover current master
+              echo "min-replicas-to-write 0" >> /tmp/redis.conf
+              echo "min-replicas-max-lag 0" >> /tmp/redis.conf
+
+              CURRENT_MASTER=""
+              SENTINEL_FOUND=false
+              for i in $(seq 0 {{ sub .Values.replicaCount 1 }}); do
+                SENTINEL_HOST="{{ include "redis.fullname" . }}-${i}.{{ include "redis.headlessSvcFqdn" . }}"
+                MASTER_INFO=$(redis-cli -t {{ .Values.sentinel.discoveryTimeout }} -h "${SENTINEL_HOST}" -p {{ .Values.sentinel.port }}{{ if .Values.auth.sentinel }} -a "${REDIS_PASSWORD}"{{ end }}{{ include "redis.tls.cliArgs" . }} sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }} 2>/dev/null | head -1 || echo "")
+                if [ -n "$MASTER_INFO" ] && [ "$MASTER_INFO" != "Could not connect" ]; then
+                  CURRENT_MASTER="$MASTER_INFO"
+                  SENTINEL_FOUND=true
+                  echo "Found master from sentinel: $CURRENT_MASTER"
+                  break
+                fi
+              done
+
+              if [ "$SENTINEL_FOUND" = true ] && [ -n "$CURRENT_MASTER" ]; then
+                MY_IP=$(hostname -i | awk '{print $1}')
+                MY_FQDN="{{ include "redis.podFqdn" . }}"
+                if [ "$MY_IP" = "$CURRENT_MASTER" ] || [ "$MY_FQDN" = "$CURRENT_MASTER" ]; then
+                  echo "I am the current master"
+                else
+                  echo "replicaof $CURRENT_MASTER {{ include "redis.port" . }}" >> /tmp/redis.conf
+                fi
+              else
+                if [ "$POD_ORDINAL" != "0" ]; then
+                  MASTER="{{ include "redis.fullname" . }}-0.{{ include "redis.headlessSvcFqdn" . }}"
+                  echo "replicaof $MASTER {{ include "redis.port" . }}" >> /tmp/redis.conf
+                fi
+              fi
+
+              {{- if .Values.sentinel.config.announceHostnames }}
+              echo "replica-announce-ip {{ include "redis.podFqdn" . }}" >> /tmp/redis.conf
+              {{- else }}
+              {{- if eq .Values.ipFamily "ipv4" }}
+              MY_IP=$(hostname -i | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -1)
+              {{- else if eq .Values.ipFamily "ipv6" }}
+              MY_IP=$(hostname -i | grep -oE '([0-9a-f:]+:+)+[0-9a-f]+' | head -1)
+              {{- else }}
+              MY_IP=$(hostname -i | awk '{print $1}')
+              {{- end }}
+              echo "replica-announce-ip ${MY_IP}" >> /tmp/redis.conf
+              {{- end }}
+              cat >> /tmp/redis.conf << CONF
+              replica-announce-port {{ include "redis.port" . }}
+              replica-priority 100
+              replica-read-only yes
+              {{- if .Values.auth.enabled }}
+              masterauth ${REDIS_PASSWORD}
+              {{- end }}
+              CONF
+
+              {{- else }}
+              # Simple replication: pod-0 is master, others are replicas
+              if [ "$POD_ORDINAL" != "0" ]; then
+                MASTER="{{ include "redis.fullname" . }}-0.{{ include "redis.headlessSvcFqdn" . }}"
+                cat >> /tmp/redis.conf << CONF
+              replicaof $MASTER {{ include "redis.port" . }}
+              replica-read-only yes
+              CONF
+              fi
+              {{- if .Values.auth.enabled }}
+              echo "masterauth ${REDIS_PASSWORD}" >> /tmp/redis.conf
+              {{- end }}
+              {{- end }}
+
+              {{- else if eq .Values.architecture "cluster" }}
+              # Cluster mode configuration
+              cat >> /tmp/redis.conf << CONF
+              cluster-enabled yes
+              cluster-config-file nodes.conf
+              cluster-node-timeout {{ .Values.cluster.config.nodeTimeout }}
+              cluster-port {{ .Values.service.clusterPort }}
+              {{- if .Values.cluster.config.requireFullCoverage }}
+              cluster-require-full-coverage yes
+              {{- else }}
+              cluster-require-full-coverage no
+              {{- end }}
+              databases 1
+              CONF
+
+              {{- if .Values.cluster.announceHostnames }}
+              MY_FQDN="{{ include "redis.podFqdn" . }}"
+              cat >> /tmp/redis.conf << CONF
+              cluster-preferred-endpoint-type hostname
+              cluster-announce-hostname ${MY_FQDN}
+              CONF
+              {{- else }}
+              {{- if eq .Values.ipFamily "ipv4" }}
+              MY_IP=$(hostname -i | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -1)
+              {{- else if eq .Values.ipFamily "ipv6" }}
+              MY_IP=$(hostname -i | grep -oE '([0-9a-f:]+:+)+[0-9a-f]+' | head -1)
+              {{- else }}
+              MY_IP=$(hostname -i | awk '{print $1}')
+              {{- end }}
+              echo "cluster-announce-ip ${MY_IP}" >> /tmp/redis.conf
+              {{- end }}
+              cat >> /tmp/redis.conf << CONF
+              cluster-announce-port {{ include "redis.port" . }}
+              cluster-announce-bus-port {{ .Values.service.clusterPort }}
+              {{- if .Values.auth.enabled }}
+              masterauth ${REDIS_PASSWORD}
+              {{- end }}
+              appendonly yes
+              CONF
+              {{- end }}
+
+              # Append base config
+              if [ -f "{{ .Values.config.mountPath }}/redis.conf" ]; then
+                echo "" >> /tmp/redis.conf
+                cat {{ .Values.config.mountPath }}/redis.conf >> /tmp/redis.conf
+              else
+                echo "bind * -::*" >> /tmp/redis.conf
+                echo "port {{ .Values.service.port }}" >> /tmp/redis.conf
+              fi
+          {{- if .Values.auth.enabled }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ include "redis.secretKey" . }}
+          {{- end }}
+          {{- if .Values.initContainer.resources }}
+          resources:
+            {{- toYaml .Values.initContainer.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: redis-config
+              mountPath: /tmp
+            {{- if or .Values.config.content .Values.config.existingConfigMap }}
+            - name: config
+              mountPath: {{ .Values.config.mountPath }}
+            {{- end }}
+            {{- if .Values.tls.enabled }}
+            - name: tls-certs
+              mountPath: /etc/redis/tls
+              readOnly: true
+            {{- end }}
+        {{- end }}
+        {{- if .Values.initContainers }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: {{ include "redis.image" . }}
+          imagePullPolicy: {{ include "redis.imagePullPolicy" . }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command:
+            {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
+          args:
+            {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
+          {{- else if .Values.command }}
+          command:
+            {{- toYaml .Values.command | nindent 12 }}
+          {{- if .Values.args }}
+          args:
+            {{- toYaml .Values.args | nindent 12 }}
+          {{- end }}
+          {{- else }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              {{- if ne .Values.architecture "standalone" }}
+              CONFIG_FILE="/tmp/redis.conf"
+              {{- else }}
+              CONFIG_FILE="{{ .Values.config.mountPath }}/redis.conf"
+              {{- end }}
+              redis-server "$CONFIG_FILE"{{ if .Values.auth.enabled }} --requirepass "${REDIS_PASSWORD}"{{ end }}{{ range .Values.disableCommands }} --rename-command {{ . }} ""{{ end }}{{ range .Values.extraFlags }} {{ . }}{{ end }}
+          {{- end }}
+          {{- $containerSecurityContext := include "common.security.renderContainerSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) }}
+          {{- if $containerSecurityContext }}
+          securityContext:
+            {{- $containerSecurityContext | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: redis
+              containerPort: {{ if .Values.tls.enabled }}{{ .Values.tls.port }}{{ else }}{{ .Values.service.port }}{{ end }}
+              protocol: TCP
+            {{- if eq .Values.architecture "cluster" }}
+            - name: cluster
+              containerPort: {{ .Values.service.clusterPort }}
+              protocol: TCP
+            {{- end }}
+            {{- with .Values.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- end }}
+          {{- $extraEnvVars := include "redis.extraEnvVars" . }}
+          {{- if or .Values.auth.enabled $extraEnvVars }}
+          env:
+            {{- if .Values.auth.enabled }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ include "redis.secretKey" . }}
+            - name: REDISCLI_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ include "redis.secretKey" . }}
+            {{- end }}
+            {{- if $extraEnvVars }}
+            {{- $extraEnvVars | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.extraEnvVarsCM .Values.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- else if .Values.resourcesPreset }}
+          resources:
+            {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.customStartupProbe }}
+          startupProbe:
+            {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.startupProbe.enabled }}
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - /health/ping_liveness_local.sh
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+            successThreshold: {{ .Values.startupProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.customLivenessProbe }}
+          livenessProbe:
+            {{- include "common.tplvalues.render" (dict "value" .Values.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - /health/ping_liveness_local.sh
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.customReadinessProbe }}
+          readinessProbe:
+            {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                {{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+                - /health/ping_readiness_local_and_master.sh
+                {{- else }}
+                - /health/ping_readiness_local.sh
+                {{- end }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          {{- end }}
+          {{- end }}
+          {{- if and (not .Values.diagnosticMode.enabled) (or .Values.lifecycleHooks (and .Values.sentinel.enabled (eq .Values.architecture "replication"))) }}
+          lifecycle:
+            {{- if .Values.lifecycleHooks }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.lifecycleHooks "context" $) | nindent 12 }}
+            {{- else if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - /scripts/prestop-redis.sh
+            {{- end }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if and .Values.persistence.enabled .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+            - name: health
+              mountPath: /health
+              readOnly: true
+            {{- if ne .Values.architecture "standalone" }}
+            - name: redis-config
+              mountPath: /tmp
+            {{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            {{- end }}
+            {{- end }}
+            {{- if and (eq .Values.architecture "standalone") (or .Values.config.content .Values.config.existingConfigMap) }}
+            - name: config
+              mountPath: {{ .Values.config.mountPath }}
+            {{- end }}
+            {{- if .Values.tls.enabled }}
+            - name: tls-certs
+              mountPath: /etc/redis/tls
+              readOnly: true
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+        - name: sentinel
+          image: {{ include "redis.sentinel.image" . }}
+          imagePullPolicy: {{ include "redis.imagePullPolicy" . }}
+          {{- if $containerSecurityContext }}
+          securityContext:
+            {{- $containerSecurityContext | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              # Wait for Redis to be ready
+              while ! redis-cli -h {{ include "redis.loopback" . }}{{ if .Values.auth.enabled }} -a "${REDIS_PASSWORD}"{{ end }} -p {{ include "redis.port" . }}{{ include "redis.tls.cliArgs" . }} ping >/dev/null 2>&1; do
+                sleep 1
+              done
+
+              POD_ORDINAL=$(hostname | sed 's/.*-//')
+              MASTER_HOST=""
+              SENTINEL_FOUND=false
+
+              # Query existing sentinels for current master
+              for i in $(seq 0 {{ sub .Values.replicaCount 1 }}); do
+                if [ "$i" != "$POD_ORDINAL" ]; then
+                  SENTINEL_HOST="{{ include "redis.fullname" . }}-${i}.{{ include "redis.headlessSvcFqdn" . }}"
+                  EXISTING_MASTER=$(redis-cli -t {{ .Values.sentinel.discoveryTimeout }} -h "${SENTINEL_HOST}" -p {{ .Values.sentinel.port }}{{ if .Values.auth.sentinel }} -a "${REDIS_PASSWORD}"{{ end }}{{ include "redis.tls.cliArgs" . }} sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }} 2>/dev/null | head -1 || echo "")
+                  if [ -n "$EXISTING_MASTER" ] && [ "$EXISTING_MASTER" != "Could not connect" ]; then
+                    MASTER_HOST="$EXISTING_MASTER"
+                    SENTINEL_FOUND=true
+                    break
+                  fi
+                fi
+              done
+
+              # Check Redis instances for master role
+              if [ "$SENTINEL_FOUND" = false ]; then
+                for i in $(seq 0 {{ sub .Values.replicaCount 1 }}); do
+                  REDIS_HOST="{{ include "redis.fullname" . }}-${i}.{{ include "redis.headlessSvcFqdn" . }}"
+                  ROLE_INFO=$(redis-cli -t {{ .Values.sentinel.discoveryTimeout }} -h "${REDIS_HOST}" -p {{ include "redis.port" . }}{{ if .Values.auth.enabled }} -a "${REDIS_PASSWORD}"{{ end }}{{ include "redis.tls.cliArgs" . }} info replication 2>/dev/null | grep "role:master" || echo "")
+                  if [ -n "$ROLE_INFO" ]; then
+                    MASTER_HOST="$REDIS_HOST"
+                    break
+                  fi
+                done
+              fi
+
+              # Fallback to pod-0
+              if [ -z "$MASTER_HOST" ]; then
+                MASTER_HOST="{{ include "redis.fullname" . }}-0.{{ include "redis.headlessSvcFqdn" . }}"
+              fi
+
+              {{- if .Values.sentinel.config.announceHostnames }}
+              ANNOUNCE_IP="{{ include "redis.podFqdn" . }}"
+              {{- else }}
+              {{- if eq .Values.ipFamily "ipv4" }}
+              ANNOUNCE_IP=$(hostname -i | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -1)
+              {{- else if eq .Values.ipFamily "ipv6" }}
+              ANNOUNCE_IP=$(hostname -i | grep -oE '([0-9a-f:]+:+)+[0-9a-f]+' | head -1)
+              {{- else }}
+              ANNOUNCE_IP=$(hostname -i | awk '{print $1}')
+              {{- end }}
+              {{- end }}
+
+              cat > /tmp/sentinel.conf << EOF
+              {{- if .Values.tls.enabled }}
+              port 0
+              tls-port {{ .Values.sentinel.port }}
+              tls-replication yes
+              tls-cert-file /etc/redis/tls/{{ .Values.tls.certFilename }}
+              tls-key-file /etc/redis/tls/{{ .Values.tls.certKeyFilename }}
+              tls-ca-cert-file /etc/redis/tls/{{ .Values.tls.certCAFilename }}
+              {{- if .Values.tls.authClients }}
+              tls-auth-clients yes
+              {{- else }}
+              tls-auth-clients no
+              {{- end }}
+              {{- else }}
+              port {{ .Values.sentinel.port }}
+              {{- end }}
+              bind * -::*
+              sentinel resolve-hostnames yes
+              sentinel announce-hostnames yes
+              sentinel monitor {{ .Values.sentinel.masterName }} ${MASTER_HOST} {{ include "redis.port" . }} {{ .Values.sentinel.quorum }}
+              sentinel down-after-milliseconds {{ .Values.sentinel.masterName }} {{ .Values.sentinel.downAfterMilliseconds }}
+              sentinel failover-timeout {{ .Values.sentinel.masterName }} {{ .Values.sentinel.failoverTimeout }}
+              sentinel parallel-syncs {{ .Values.sentinel.masterName }} {{ .Values.sentinel.parallelSyncs }}
+              {{- if .Values.auth.enabled }}
+              sentinel auth-pass {{ .Values.sentinel.masterName }} ${REDIS_PASSWORD}
+              {{- end }}
+              {{- if .Values.auth.sentinel }}
+              requirepass ${REDIS_PASSWORD}
+              {{- end }}
+              sentinel deny-scripts-reconfig yes
+              protected-mode no
+              sentinel announce-ip ${ANNOUNCE_IP}
+              sentinel announce-port {{ .Values.sentinel.port }}
+              logfile ""
+              loglevel {{ .Values.sentinel.config.loglevel }}
+              EOF
+
+              # Add known sentinels
+              for i in $(seq 0 {{ sub .Values.replicaCount 1 }}); do
+                if [ "$i" != "$POD_ORDINAL" ]; then
+                  SENTINEL_HOST="{{ include "redis.fullname" . }}-${i}.{{ include "redis.headlessSvcFqdn" . }}"
+                  if getent hosts "$SENTINEL_HOST" >/dev/null 2>&1; then
+                    SENTINEL_IP=$(getent hosts "$SENTINEL_HOST" | awk '{print $1}' | head -1)
+                    [ -n "$SENTINEL_IP" ] && echo "sentinel known-sentinel {{ .Values.sentinel.masterName }} ${SENTINEL_IP} {{ .Values.sentinel.port }}" >> /tmp/sentinel.conf
+                  fi
+                fi
+              done
+
+              redis-sentinel /tmp/sentinel.conf
+          ports:
+            - name: sentinel
+              containerPort: {{ .Values.sentinel.port }}
+              protocol: TCP
+          {{- if .Values.auth.enabled }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ include "redis.secretKey" . }}
+          {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.sentinel.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - /health/ping_sentinel.sh
+            periodSeconds: {{ .Values.sentinel.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.sentinel.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.sentinel.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.sentinel.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.sentinel.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - /health/ping_sentinel.sh
+            periodSeconds: {{ .Values.sentinel.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.sentinel.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.sentinel.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.sentinel.readinessProbe.successThreshold }}
+          {{- end }}
+          {{- end }}
+          {{- if and .Values.sentinel.preStop.enabled (not .Values.diagnosticMode.enabled) }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - /scripts/prestop-sentinel.sh
+          {{- end }}
+          {{- if .Values.sentinel.resources }}
+          resources:
+            {{- toYaml .Values.sentinel.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: sentinel-config
+              mountPath: /tmp
+            - name: health
+              mountPath: /health
+              readOnly: true
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            {{- if .Values.tls.enabled }}
+            - name: tls-certs
+              mountPath: /etc/redis/tls
+              readOnly: true
+            {{- end }}
+            {{- with .Values.sentinel.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- end }}
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          image: {{ include "redis.metrics.image" . }}
+          imagePullPolicy: {{ .Values.metrics.image.pullPolicy }}
+          {{- if $containerSecurityContext }}
+          securityContext:
+            {{- $containerSecurityContext | nindent 12 }}
+          {{- end }}
+          {{- if .Values.auth.enabled }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ include "redis.secretKey" . }}
+          {{- end }}
+          command:
+            - /redis_exporter
+            {{- if .Values.tls.enabled }}
+            - --redis.addr=rediss://{{ include "redis.loopback" . }}:{{ include "redis.port" . }}
+            - --redis.tls-client-cert-file=/etc/redis/tls/{{ .Values.tls.certFilename }}
+            - --redis.tls-client-key-file=/etc/redis/tls/{{ .Values.tls.certKeyFilename }}
+            - --redis.tls-ca-cert-file=/etc/redis/tls/{{ .Values.tls.certCAFilename }}
+            {{- end }}
+            {{- range .Values.metrics.extraArgs }}
+            - {{ . }}
+            {{- end }}
+          ports:
+            - name: metrics
+              containerPort: 9121
+              protocol: TCP
+          {{- if not .Values.diagnosticMode.enabled }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: metrics
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            periodSeconds: 5
+            timeoutSeconds: 1
+            failureThreshold: 3
+          {{- end }}
+          {{- if .Values.tls.enabled }}
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /etc/redis/tls
+              readOnly: true
+          {{- end }}
+          {{- if .Values.metrics.resources }}
+          resources:
+            {{- toYaml .Values.metrics.resources | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.sidecars }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: health
+          configMap:
+            name: {{ include "redis.fullname" . }}-health
+            defaultMode: 0755
+        {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.persistence.existingClaim }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        {{- end }}
+        {{- if and .Values.sysctl.enabled .Values.sysctl.mountHostSys }}
+        - name: host-sys
+          hostPath:
+            path: /sys
+        {{- end }}
+        {{- if ne .Values.architecture "standalone" }}
+        - name: redis-config
+          emptyDir: {}
+        {{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+        - name: sentinel-config
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: {{ include "redis.fullname" . }}-scripts
+            defaultMode: 0755
+        {{- end }}
+        {{- end }}
+        {{- if or .Values.config.content .Values.config.existingConfigMap }}
+        - name: config
+          configMap:
+            {{- if .Values.config.existingConfigMap }}
+            name: {{ .Values.config.existingConfigMap }}
+            {{- else }}
+            name: {{ include "redis.fullname" . }}-config
+            {{- end }}
+        {{- end }}
+        {{- if .Values.tls.enabled }}
+        - name: tls-certs
+          secret:
+            secretName: {{ required "tls.existingSecret is required when TLS is enabled" .Values.tls.existingSecret }}
+            items:
+              - key: {{ .Values.tls.certFilename }}
+                path: {{ .Values.tls.certFilename }}
+              - key: {{ .Values.tls.certKeyFilename }}
+                path: {{ .Values.tls.certKeyFilename }}
+              - key: {{ .Values.tls.certCAFilename }}
+                path: {{ .Values.tls.certCAFilename }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
+        {{- end }}
+  {{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+  {{- if .Values.persistentVolumeClaimRetentionPolicy.enabled }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: {{ .Values.persistentVolumeClaimRetentionPolicy.whenDeleted }}
+    whenScaled: {{ .Values.persistentVolumeClaimRetentionPolicy.whenScaled }}
+  {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "redis.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 10 }}
+        {{- if or .Values.persistence.annotations (eq .Values.persistence.resourcePolicy "keep") }}
+        annotations:
+          {{- if eq .Values.persistence.resourcePolicy "keep" }}
+          helm.sh/resource-policy: keep
+          {{- end }}
+          {{- with .Values.persistence.annotations }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.accessMode | quote }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}
+  {{- end }}

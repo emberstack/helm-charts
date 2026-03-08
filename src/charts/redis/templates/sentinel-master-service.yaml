@@ -1,0 +1,211 @@
+{{- if and .Values.sentinel.enabled .Values.sentinel.masterService.enabled (eq .Values.architecture "replication") }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis.fullname" . }}-master
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: master
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-redis
+      port: {{ .Values.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "redis.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 4 }}
+    redis-role: master
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "redis.fullname" . }}-master-discovery
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: master-discovery
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "redis.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: master-discovery
+  template:
+    metadata:
+      labels:
+        {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: master-discovery
+    spec:
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      automountServiceAccountToken: true
+      {{- $podSecurityContext := include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}
+      {{- if $podSecurityContext }}
+      securityContext:
+        {{- $podSecurityContext | nindent 8 }}
+      {{- end }}
+      containers:
+        # Queries sentinel to discover the current master, writes result to shared volume
+        - name: sentinel-query
+          image: {{ include "redis.image" . }}
+          imagePullPolicy: {{ include "redis.imagePullPolicy" . }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          {{- if .Values.auth.enabled }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ include "redis.secretKey" . }}
+          {{- end }}
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+            {{- if .Values.tls.enabled }}
+            - name: tls-certs
+              mountPath: /etc/redis/tls
+              readOnly: true
+            {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              while true; do
+                MASTER_HOST=""
+                for i in $(seq 0 {{ sub .Values.replicaCount 1 }}); do
+                  SENTINEL_HOST="{{ include "redis.fullname" . }}-${i}.{{ include "redis.headlessSvcFqdn" . }}"
+                  MASTER_HOST=$(redis-cli -t 3 -h "${SENTINEL_HOST}" -p {{ .Values.sentinel.port }}{{ if .Values.auth.sentinel }} -a "${REDIS_PASSWORD}"{{ end }}{{ include "redis.tls.cliArgs" . }} sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }} 2>/dev/null | head -1 || echo "")
+                  if [ -n "$MASTER_HOST" ] && [ "$MASTER_HOST" != "Could not connect" ]; then
+                    break
+                  fi
+                  MASTER_HOST=""
+                done
+
+                if [ -n "$MASTER_HOST" ]; then
+                  # Resolve master host to a pod name
+                  for i in $(seq 0 {{ sub .Values.replicaCount 1 }}); do
+                    POD_NAME="{{ include "redis.fullname" . }}-${i}"
+                    POD_HOST="${POD_NAME}.{{ include "redis.headlessSvcFqdn" . }}"
+                    POD_IP=$(getent hosts "$POD_HOST" 2>/dev/null | awk '{print $1}' | head -1 || echo "")
+                    if [ "$POD_IP" = "$MASTER_HOST" ] || [ "$POD_HOST" = "$MASTER_HOST" ]; then
+                      echo "$POD_NAME" > /shared/master
+                      break
+                    fi
+                  done
+                fi
+
+                sleep {{ .Values.sentinel.masterService.checkInterval }}
+              done
+        # Reads the discovered master and labels pods via K8s API
+        - name: pod-labeler
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.sentinel.masterService.image "context" $) }}
+          imagePullPolicy: {{ .Values.sentinel.masterService.image.pullPolicy }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+              readOnly: true
+          command:
+            - /bin/sh
+            - -c
+            - |
+              APISERVER="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}"
+              CACERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+              NAMESPACE="{{ include "redis.namespace" . }}"
+              label_pod() {
+                TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                curl -s -o /dev/null -X PATCH \
+                  -H "Authorization: Bearer ${TOKEN}" \
+                  -H "Content-Type: application/merge-patch+json" \
+                  -d "{\"metadata\":{\"labels\":{\"redis-role\":\"$2\"}}}" \
+                  --cacert "${CACERT}" \
+                  "${APISERVER}/api/v1/namespaces/${NAMESPACE}/pods/$1" 2>/dev/null || true
+              }
+
+              get_label() {
+                TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                curl -s \
+                  -H "Authorization: Bearer ${TOKEN}" \
+                  --cacert "${CACERT}" \
+                  "${APISERVER}/api/v1/namespaces/${NAMESPACE}/pods/$1" 2>/dev/null \
+                  | sed -n 's/.*"redis-role":"\([^"]*\)".*/\1/p'
+              }
+
+              while true; do
+                if [ -f /shared/master ]; then
+                  MASTER=$(cat /shared/master)
+                  if [ -n "$MASTER" ]; then
+                    for i in $(seq 0 {{ sub .Values.replicaCount 1 }}); do
+                      POD="{{ include "redis.fullname" . }}-${i}"
+                      if [ "$POD" = "$MASTER" ]; then
+                        WANT="master"
+                      else
+                        WANT="replica"
+                      fi
+                      CURRENT=$(get_label "$POD")
+                      if [ "$CURRENT" != "$WANT" ]; then
+                        label_pod "$POD" "$WANT"
+                      fi
+                    done
+                  fi
+                fi
+                sleep {{ .Values.sentinel.masterService.checkInterval }}
+              done
+      volumes:
+        - name: shared
+          emptyDir: {}
+        {{- if .Values.tls.enabled }}
+        - name: tls-certs
+          secret:
+            secretName: {{ .Values.tls.existingSecret }}
+        {{- end }}
+---
+{{- if eq (include "redis.serviceAccount.create" .) "true" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "redis.fullname" . }}-master-discovery
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "redis.fullname" . }}-master-discovery
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "redis.fullname" . }}-master-discovery
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "redis.serviceAccountName" . }}
+    namespace: {{ include "redis.namespace" . }}
+{{- end }}
+{{- end }}

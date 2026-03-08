@@ -29,12 +29,12 @@ helm upgrade --install azure-alb-extensions emberstack/azure-alb-extensions
 | `namespaceOverride` | Override namespace | `""` |
 | `commonLabels` | Labels added to all resources | `{}` |
 | `commonAnnotations` | Annotations added to all resources | `{}` |
-| `webApplicationFirewallPolicies` | Array of WebApplicationFirewallPolicies | `[]` |
-| `healthCheckPolicies` | Array of HealthCheckPolicies | `[]` |
-| `routePolicies` | Array of RoutePolicies | `[]` |
-| `frontendTLSPolicies` | Array of FrontendTLSPolicies | `[]` |
-| `backendTLSPolicies` | Array of BackendTLSPolicies | `[]` |
-| `backendLoadBalancingPolicies` | Array of BackendLoadBalancingPolicies | `[]` |
+| `webApplicationFirewallPolicies` | Map of WebApplicationFirewallPolicies | `{}` |
+| `healthCheckPolicies` | Map of HealthCheckPolicies | `{}` |
+| `routePolicies` | Map of RoutePolicies | `{}` |
+| `frontendTLSPolicies` | Map of FrontendTLSPolicies | `{}` |
+| `backendTLSPolicies` | Map of BackendTLSPolicies | `{}` |
+| `backendLoadBalancingPolicies` | Map of BackendLoadBalancingPolicies | `{}` |
 
 ## Usage Examples
 

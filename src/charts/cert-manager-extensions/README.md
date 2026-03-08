@@ -29,6 +29,6 @@ helm upgrade --install cert-manager-extensions emberstack/cert-manager-extension
 | `namespaceOverride` | Override namespace | `""` |
 | `commonLabels` | Labels added to all resources | `{}` |
 | `commonAnnotations` | Annotations added to all resources | `{}` |
-| `issuers` | Array of Issuers | `[]` |
-| `clusterIssuers` | Array of ClusterIssuers | `[]` |
-| `certificates` | Array of Certificates | `[]` |
+| `issuers` | Map of Issuers | `{}` |
+| `clusterIssuers` | Map of ClusterIssuers | `{}` |
+| `certificates` | Map of Certificates (keyed by name) | `{}` |

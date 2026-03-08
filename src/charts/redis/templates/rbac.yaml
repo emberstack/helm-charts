@@ -1,0 +1,71 @@
+{{- if .Values.rbac.create }}
+{{- if .Values.rbac.clusterRole.rules }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "redis.fullname" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.clusterRole.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "redis.fullname" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "redis.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "redis.serviceAccountName" . }}
+    namespace: {{ include "redis.namespace" . }}
+{{- end }}
+{{- if .Values.rbac.role.rules }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "redis.fullname" . }}
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.role.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "redis.fullname" . }}
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "redis.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "redis.serviceAccountName" . }}
+    namespace: {{ include "redis.namespace" . }}
+{{- end }}
+{{- end }}

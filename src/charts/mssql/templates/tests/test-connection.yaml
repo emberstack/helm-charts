@@ -8,11 +8,33 @@ metadata:
     {{- include "mssql.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
   annotations:
     "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   restartPolicy: Never
   containers:
-    - name: tcp-test
-      image: busybox
-      command: ['sh', '-c']
-      args: ['nc -z {{ include "mssql.fullname" . }} {{ .Values.service.port }}']
+    - name: sqlcmd-test
+      image: {{ include "mssql.image" . }}
+      command: ['/opt/mssql-tools18/bin/sqlcmd']
+      args:
+        - -S
+        - {{ include "mssql.fullname" . }},{{ .Values.service.port | default 1433 }}
+        - -U
+        - sa
+        - -P
+        - $(MSSQL_SA_PASSWORD)
+        - -Q
+        - SELECT 1
+        - -C
+      env:
+        - name: MSSQL_SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "mssql.secretName" . }}
+              key: {{ include "mssql.secretKey" . }}
+      securityContext:
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
 {{- end }}

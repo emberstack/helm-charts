@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis.fullname" . }}-headless
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-redis
+      port: {{ .Values.service.port }}
+      targetPort: redis
+      protocol: TCP
+    {{- if eq .Values.architecture "cluster" }}
+    - name: tcp-cluster
+      port: {{ .Values.service.clusterPort }}
+      targetPort: cluster
+      protocol: TCP
+    {{- end }}
+    {{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+    - name: tcp-sentinel
+      port: {{ .Values.sentinel.port }}
+      targetPort: sentinel
+      protocol: TCP
+    {{- end }}
+  selector:
+    {{- include "redis.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 4 }}

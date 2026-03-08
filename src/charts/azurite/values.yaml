@@ -28,45 +28,53 @@ extraObjects: []
 ## @section Image parameters
 image:
   registry: mcr.microsoft.com
-  repository: mssql/server
-  tag: 2025-latest
+  repository: azure-storage/azurite
+  tag: latest
   digest: ""
   pullPolicy: IfNotPresent
   pullSecrets: []
 
-## @section SQL Server configuration
+## Image used for helm test pods
+testImage:
+  registry: docker.io
+  repository: busybox
+  tag: latest
+  pullPolicy: IfNotPresent
+
+## @section Azurite configuration
 configuration:
-  ## acceptEula must be set to true (sets ACCEPT_EULA=Y)
-  acceptEula: false
-  ## SQL Server edition: Developer, Express, Standard, Enterprise, EnterpriseCore
-  ## SQL Server 2025 also supports: StandardDeveloper, EnterpriseDeveloper, Evaluation
-  edition: "Developer"
-  ## SA password — required unless existingSecret is set
-  saPassword: ""
-  ## Use an existing secret for SA password
-  existingSecret: ""
-  ## Key in the existing secret that contains the SA password
-  existingSecretKey: "saPassword"
-  ## Database collation (e.g. SQL_Latin1_General_CP1_CI_AS)
-  collation: ""
-  ## Language ID (e.g. 1036 for French)
-  lcid: ""
-  ## Max memory in MB (default: 80% of physical)
-  memoryLimitMb: ""
-  ## TCP port (default: 1433)
-  tcpPort: ""
-  ## Enable SQL Server Agent
-  agentEnabled: false
-  ## Enable Always On Availability Groups
-  hadrEnabled: false
-  ## Custom data file directory
-  dataDir: ""
-  ## Custom log file directory
-  logDir: ""
-  ## Custom backup directory
-  backupDir: ""
-  ## Custom dump directory
-  dumpDir: ""
+  ## Enable Blob service (port 10000)
+  blobEnabled: true
+  ## Enable Queue service (port 10001)
+  queueEnabled: true
+  ## Enable Table service (port 10002)
+  tableEnabled: true
+  ## Loose mode — relaxes API version checks and response validation
+  loose: true
+  ## Disable product style URL (use path-style instead)
+  disableProductStyleUrl: true
+  ## Skip API version check
+  skipApiVersionCheck: true
+  ## In-memory persistence (data lost on restart, ignores PVC)
+  inMemoryPersistence: false
+  ## Debug log file path (empty = log to stdout, recommended for K8s)
+  debugLog: ""
+  ## HTTPS cert/key PEM paths (leave empty for HTTP)
+  ## Requires mounting certs via extraVolumes/extraVolumeMounts
+  certPath: ""
+  keyPath: ""
+  ## OAuth support (set to "basic" to enable)
+  oauth: ""
+  ## Disable access log output
+  silent: false
+  ## Disable telemetry collection
+  disableTelemetry: false
+  ## In-memory extent store size limit in MB (only used with inMemoryPersistence)
+  extentMemoryLimit: ""
+  ## PFX certificate password (when certPath points to a .pfx file)
+  certPassword: ""
+  ## Extra arguments to pass to azurite
+  extraArgs: []
 
 ## @section Deployment parameters
 deployment:
@@ -92,16 +100,13 @@ diagnosticMode:
 command: []
 args: []
 
-containerPort: 1433
 extraContainerPorts: []
-# - name: metrics
-#   containerPort: 9090
-#   protocol: TCP
 
-## Probes - set custom*Probe to override defaults. diagnosticMode disables all.
+## Probes — automatically target the first enabled service (blob > queue > table).
+## diagnosticMode disables all probes.
 livenessProbe:
   tcpSocket:
-    port: mssql
+    port: blob
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 6
@@ -110,7 +115,7 @@ customLivenessProbe: {}
 
 readinessProbe:
   tcpSocket:
-    port: mssql
+    port: blob
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
@@ -119,7 +124,7 @@ customReadinessProbe: {}
 
 startupProbe:
   tcpSocket:
-    port: mssql
+    port: blob
   periodSeconds: 5
   timeoutSeconds: 5
   failureThreshold: 60
@@ -132,17 +137,12 @@ resources: {}
 #   memory: 128Mi
 # limits:
 #   cpu: 250m
-#   memory: 256Mi
+#   memory: 512Mi
 resourcesPreset: ""   # nano, micro, small, medium, large, xlarge, 2xlarge
 
 lifecycleHooks: {}
-# postStart:
-#   exec:
-#     command: ["/bin/sh", "-c", "echo started"]
 
 extraEnvVars: []
-# - name: FOO
-#   value: bar
 extraEnvVarsCM: ""
 extraEnvVarsSecret: ""
 
@@ -155,21 +155,17 @@ podAnnotations: {}
 
 podSecurityContext:
   enabled: true
-  fsGroup: 10001
+  fsGroup: 1000
   seccompProfile:
     type: RuntimeDefault
 
 containerSecurityContext:
   enabled: true
-  runAsNonRoot: true
-  runAsUser: 10001
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
   capabilities:
     drop:
       - ALL
-    add:
-      - NET_BIND_SERVICE
 
 ## Affinity presets (convenience). Override with 'affinity' for full control.
 podAffinityPreset: ""        # soft | hard
@@ -205,9 +201,6 @@ rbac:
   create: false
   clusterRole:
     rules: []
-    # - apiGroups: [""]
-    #   resources: ["secrets"]
-    #   verbs: ["list", "watch"]
   role:
     rules: []
 
@@ -215,9 +208,12 @@ rbac:
 service:
   enabled: true
   type: ClusterIP
-  port: 1433
-  targetPort: mssql
-  nodePort: ""
+  ## Blob service port (container always listens on 10000)
+  blobPort: 10000
+  ## Queue service port (container always listens on 10001)
+  queuePort: 10001
+  ## Table service port (container always listens on 10002)
+  tablePort: 10002
   clusterIP: ""
   loadBalancerIP: ""
   loadBalancerSourceRanges: []
@@ -225,9 +221,51 @@ service:
   annotations: {}
   labels: {}
   extraPorts: []
-  # - name: metrics
-  #   port: 9090
-  #   targetPort: metrics
+
+## @section Ingress parameters
+ingress:
+  enabled: false
+  ingressClassName: ""
+  hostname: ""
+  path: /
+  pathType: Prefix
+  annotations: {}
+  labels: {}
+  tls: false
+  extraHosts: []
+  extraTls: []
+  extraRules: []
+
+## @section HTTPRoute parameters (Gateway API)
+httpRoute:
+  enabled: false
+  parentRefs: []
+  # - name: my-gateway
+  #   namespace: gateway-ns
+  #   sectionName: https
+  hostnames: []
+  rules: []
+  # - matches:
+  #     - path:
+  #         type: PathPrefix
+  #         value: /
+  #   backendRefs:
+  #     - name: ""      # defaults to fullname
+  #       port: 10000   # defaults to service.blobPort
+  #   filters: []
+  annotations: {}
+  labels: {}
+  ## HTTP→HTTPS redirect companion route
+  httpRedirect:
+    enabled: false
+    parentRefs: []
+    hostnames: []
+    annotations: {}
+    labels: {}
+    scheme: https
+    statusCode: 301
+    port: ""
+    path: {}
 
 ## @section PodDisruptionBudget parameters
 pdb:
@@ -243,15 +281,13 @@ networkPolicy:
     - Egress
   ingress: []
   egress: []
-  # Allow DNS resolution by default
   allowExternalDNS: true
 
 ## @section ServiceMonitor parameters (Prometheus Operator)
-## Use for scraping metrics via Service endpoints.
 serviceMonitor:
   enabled: false
   namespace: ""
-  port: mssql
+  port: blob
   path: /metrics
   interval: 30s
   scrapeTimeout: ""
@@ -265,7 +301,6 @@ serviceMonitor:
 configMap:
   enabled: false
   data: {}
-  # key: value
 
 ## @section Persistence parameters
 persistence:
@@ -276,6 +311,6 @@ persistence:
     - ReadWriteOnce
   size: 8Gi
   existingClaim: ""
-  mountPath: /var/opt/mssql
+  mountPath: /data
   subPath: ""
   annotations: {}

@@ -1,0 +1,117 @@
+{{- if .Values.httpRoute.enabled }}
+apiVersion: {{ include "common.capabilities.httpRoute.apiVersion" . }}
+kind: HTTPRoute
+metadata:
+  name: {{ include "azurite.fullname" . }}
+  namespace: {{ include "azurite.namespace" . }}
+  labels:
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- with .Values.httpRoute.labels }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.httpRoute.annotations .Values.commonAnnotations) "context" $) | fromYaml }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- include "common.tplvalues.render" (dict "value" .Values.httpRoute.parentRefs "context" $) | nindent 4 }}
+  {{- with .Values.httpRoute.hostnames }}
+  hostnames:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- if .Values.httpRoute.rules }}
+    {{- range .Values.httpRoute.rules }}
+    - {{- if .matches }}
+      matches:
+        {{- toYaml .matches | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        {{- if .backendRefs }}
+        {{- range .backendRefs }}
+        - name: {{ default (include "azurite.fullname" $) .name }}
+          port: {{ default $.Values.service.blobPort .port }}
+          {{- if .weight }}
+          weight: {{ .weight }}
+          {{- end }}
+          {{- if .namespace }}
+          namespace: {{ .namespace }}
+          {{- end }}
+        {{- end }}
+        {{- else }}
+        - name: {{ include "azurite.fullname" $ }}
+          port: {{ $.Values.service.blobPort }}
+        {{- end }}
+      {{- if .filters }}
+      filters:
+        {{- toYaml .filters | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- else }}
+    - backendRefs:
+        - name: {{ include "azurite.fullname" . }}
+          port: {{ .Values.service.blobPort }}
+    {{- end }}
+{{- if .Values.httpRoute.httpRedirect.enabled }}
+---
+{{- $redirect := .Values.httpRoute.httpRedirect }}
+apiVersion: {{ include "common.capabilities.httpRoute.apiVersion" . }}
+kind: HTTPRoute
+metadata:
+  name: {{ printf "%s-redirect" (include "azurite.fullname" .) }}
+  namespace: {{ include "azurite.namespace" . }}
+  labels:
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- with (default .Values.httpRoute.labels $redirect.labels) }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $redirectAnnotations := include "common.tplvalues.merge" (dict "values" (list (default .Values.httpRoute.annotations $redirect.annotations) .Values.commonAnnotations) "context" $) | fromYaml }}
+  {{- with $redirectAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- if $redirect.parentRefs }}
+    {{- include "common.tplvalues.render" (dict "value" $redirect.parentRefs "context" $) | nindent 4 }}
+    {{- else }}
+    {{- /* Derive redirect parentRefs from main route, swapping sectionName to "http" */ -}}
+    {{- range .Values.httpRoute.parentRefs }}
+    - name: {{ .name }}
+      sectionName: http
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+      {{- with .group }}
+      group: {{ . }}
+      {{- end }}
+      {{- with .kind }}
+      kind: {{ . }}
+      {{- end }}
+      {{- with .port }}
+      port: {{ . }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- $redirectHostnames := default .Values.httpRoute.hostnames $redirect.hostnames }}
+  {{- with $redirectHostnames }}
+  hostnames:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: {{ $redirect.scheme }}
+            statusCode: {{ $redirect.statusCode }}
+            {{- if $redirect.port }}
+            port: {{ $redirect.port }}
+            {{- end }}
+            {{- with $redirect.path }}
+            path:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+{{- end }}
+{{- end }}

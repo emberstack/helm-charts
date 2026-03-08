@@ -29,9 +29,9 @@ helm upgrade --install gateway-api-extensions emberstack/gateway-api-extensions
 | `namespaceOverride` | Override namespace | `""` |
 | `commonLabels` | Labels added to all resources | `{}` |
 | `commonAnnotations` | Annotations added to all resources | `{}` |
-| `gateways` | Array of Gateways | `[]` |
-| `httpRoutes` | Array of HTTPRoutes | `[]` |
-| `referenceGrants` | Array of ReferenceGrants | `[]` |
+| `gateways` | Map of Gateways | `{}` |
+| `httpRoutes` | Map of HTTPRoutes | `{}` |
+| `referenceGrants` | Map of ReferenceGrants | `{}` |
 
 ## Usage Examples
 

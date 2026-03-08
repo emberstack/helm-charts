@@ -1,0 +1,71 @@
+{{- if .Values.rbac.create }}
+{{- if .Values.rbac.clusterRole.rules }}
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+kind: ClusterRole
+metadata:
+  name: {{ include "azurite.fullname" . }}
+  labels:
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.clusterRole.rules | nindent 2 }}
+---
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "azurite.fullname" . }}
+  labels:
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "azurite.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "azurite.serviceAccountName" . }}
+    namespace: {{ include "azurite.namespace" . }}
+{{- end }}
+{{- if .Values.rbac.role.rules }}
+---
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+kind: Role
+metadata:
+  name: {{ include "azurite.fullname" . }}
+  namespace: {{ include "azurite.namespace" . }}
+  labels:
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.role.rules | nindent 2 }}
+---
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+kind: RoleBinding
+metadata:
+  name: {{ include "azurite.fullname" . }}
+  namespace: {{ include "azurite.namespace" . }}
+  labels:
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "azurite.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "azurite.serviceAccountName" . }}
+    namespace: {{ include "azurite.namespace" . }}
+{{- end }}
+{{- end }}

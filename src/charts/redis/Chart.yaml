@@ -1,0 +1,22 @@
+apiVersion: v2
+name: redis
+description: A Helm chart for deploying Redis on Kubernetes
+type: application
+kubeVersion: ">= 1.24.0-0"
+version: 1.0.0
+appVersion: "8.0.2"
+home: https://github.com/emberstack/helm-charts
+sources:
+  - https://github.com/emberstack/helm-charts
+maintainers:
+  - name: emberstack
+    email: helm-charts@emberstack.com
+keywords:
+  - redis
+  - cache
+  - database
+  - key-value
+dependencies:
+  - name: common
+    version: "1.x.x"
+    repository: "file://../common"

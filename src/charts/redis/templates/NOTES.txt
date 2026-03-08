@@ -1,0 +1,60 @@
+Redis has been deployed with architecture: {{ .Values.architecture }}
+
+{{- if eq .Values.architecture "standalone" }}
+Mode: Standalone (single node)
+{{- else if eq .Values.architecture "replication" }}
+{{- if .Values.sentinel.enabled }}
+Mode: Replication with Sentinel (HA)
+Sentinel master name: {{ .Values.sentinel.masterName }}
+{{- else }}
+Mode: Replication (manual failover)
+{{- end }}
+Replicas: {{ .Values.replicaCount }}
+{{- else if eq .Values.architecture "cluster" }}
+Mode: Cluster (sharded)
+Total nodes: {{ include "redis.replicaCount" . }}
+Replicas per master: {{ .Values.cluster.replicaCount }}
+{{- end }}
+
+To connect to Redis:
+
+{{- if .Values.auth.enabled }}
+
+  1. Get the Redis password:
+
+     export REDIS_PASSWORD=$(kubectl get secret {{ include "redis.secretName" . }} -n {{ include "redis.namespace" . }} -o jsonpath="{.data.{{ include "redis.secretKey" . }}}" | base64 -d)
+
+{{- end }}
+
+  {{ if .Values.auth.enabled }}2{{ else }}1{{ end }}. Connect using redis-cli:
+
+{{- if eq .Values.architecture "standalone" }}
+
+     kubectl run redis-cli --rm -it --restart=Never -n {{ include "redis.namespace" . }} \
+       --image={{ include "redis.image" . }} -- \
+       redis-cli -h {{ include "redis.fullname" . }}{{ if .Values.auth.enabled }} -a "$REDIS_PASSWORD"{{ end }}{{ include "redis.tls.cliArgs" . }}
+
+{{- else if and (eq .Values.architecture "replication") .Values.sentinel.enabled }}
+
+     # Connect via Sentinel (discovers the current master automatically):
+     kubectl run redis-cli --rm -it --restart=Never -n {{ include "redis.namespace" . }} \
+       --image={{ include "redis.image" . }} -- \
+       redis-cli -h {{ include "redis.fullname" . }} -p {{ .Values.sentinel.port }}{{ if .Values.auth.enabled }} -a "$REDIS_PASSWORD"{{ end }} sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }}
+
+{{- else }}
+
+     kubectl run redis-cli --rm -it --restart=Never -n {{ include "redis.namespace" . }} \
+       --image={{ include "redis.image" . }} -- \
+       redis-cli -h {{ include "redis.fullname" . }}{{ if .Values.auth.enabled }} -a "$REDIS_PASSWORD"{{ end }}{{ include "redis.tls.cliArgs" . }}
+
+{{- end }}
+
+Service endpoints:
+  - Redis: {{ include "redis.fullname" . }}.{{ include "redis.namespace" . }}.svc.{{ .Values.clusterDomain }}:{{ .Values.service.port }}
+  - Headless: {{ include "redis.headlessSvcFqdn" . }}:{{ .Values.service.port }}
+{{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+  - Sentinel: {{ include "redis.fullname" . }}.{{ include "redis.namespace" . }}.svc.{{ .Values.clusterDomain }}:{{ .Values.sentinel.port }}
+{{- end }}
+{{- if .Values.metrics.enabled }}
+  - Metrics: port 9121 (redis_exporter)
+{{- end }}

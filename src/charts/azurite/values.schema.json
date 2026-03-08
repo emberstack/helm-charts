@@ -30,21 +30,22 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "acceptEula": { "type": "boolean", "description": "Accept the SQL Server EULA (required)" },
-        "edition": { "type": "string", "description": "SQL Server edition" },
-        "saPassword": { "type": "string", "description": "SA password" },
-        "existingSecret": { "type": "string", "description": "Use an existing secret for SA password" },
-        "existingSecretKey": { "type": "string", "description": "Key in the existing secret" },
-        "collation": { "type": "string" },
-        "lcid": { "type": ["string", "integer"] },
-        "memoryLimitMb": { "type": ["string", "integer"] },
-        "tcpPort": { "type": ["string", "integer"] },
-        "agentEnabled": { "type": "boolean" },
-        "hadrEnabled": { "type": "boolean" },
-        "dataDir": { "type": "string" },
-        "logDir": { "type": "string" },
-        "backupDir": { "type": "string" },
-        "dumpDir": { "type": "string" }
+        "blobEnabled": { "type": "boolean", "description": "Enable Blob service (port 10000)" },
+        "queueEnabled": { "type": "boolean", "description": "Enable Queue service (port 10001)" },
+        "tableEnabled": { "type": "boolean", "description": "Enable Table service (port 10002)" },
+        "loose": { "type": "boolean", "description": "Relaxed API validation" },
+        "disableProductStyleUrl": { "type": "boolean", "description": "Use path-style URLs" },
+        "skipApiVersionCheck": { "type": "boolean", "description": "Skip API version check" },
+        "inMemoryPersistence": { "type": "boolean", "description": "In-memory mode (no disk)" },
+        "debugLog": { "type": "string", "description": "Debug log file path" },
+        "certPath": { "type": "string", "description": "HTTPS certificate PEM/PFX path" },
+        "keyPath": { "type": "string", "description": "HTTPS key PEM path" },
+        "certPassword": { "type": "string", "description": "PFX certificate password" },
+        "oauth": { "type": "string", "description": "OAuth support (basic)" },
+        "silent": { "type": "boolean", "description": "Disable access log output" },
+        "disableTelemetry": { "type": "boolean", "description": "Disable telemetry collection" },
+        "extentMemoryLimit": { "type": ["string", "integer"], "description": "In-memory extent limit in MB" },
+        "extraArgs": { "type": "array", "items": { "type": "string" }, "description": "Extra CLI arguments" }
       }
     },
     "deployment": {
@@ -71,7 +72,6 @@
     },
     "command": { "type": "array", "items": { "type": "string" } },
     "args": { "type": "array", "items": { "type": "string" } },
-    "containerPort": { "type": "integer" },
     "extraContainerPorts": { "type": "array" },
     "livenessProbe": { "type": "object", "additionalProperties": true },
     "customLivenessProbe": { "type": "object", "additionalProperties": true },
@@ -151,9 +151,9 @@
       "properties": {
         "enabled": { "type": "boolean" },
         "type": { "type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"] },
-        "port": { "type": "integer" },
-        "targetPort": { "type": ["string", "integer"] },
-        "nodePort": { "type": ["string", "integer"] },
+        "blobPort": { "type": "integer" },
+        "queuePort": { "type": "integer" },
+        "tablePort": { "type": "integer" },
         "clusterIP": { "type": "string" },
         "loadBalancerIP": { "type": "string" },
         "loadBalancerSourceRanges": { "type": "array", "items": { "type": "string" } },
@@ -161,6 +161,50 @@
         "annotations": { "type": "object", "additionalProperties": true },
         "labels": { "type": "object", "additionalProperties": true },
         "extraPorts": { "type": "array" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "ingressClassName": { "type": "string" },
+        "hostname": { "type": "string" },
+        "path": { "type": "string" },
+        "pathType": { "type": "string", "enum": ["Prefix", "Exact", "ImplementationSpecific"] },
+        "annotations": { "type": "object", "additionalProperties": true },
+        "labels": { "type": "object", "additionalProperties": true },
+        "tls": { "type": "boolean" },
+        "extraHosts": { "type": "array" },
+        "extraTls": { "type": "array" },
+        "extraRules": { "type": "array" }
+      }
+    },
+    "httpRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "parentRefs": { "type": "array" },
+        "hostnames": { "type": "array", "items": { "type": "string" } },
+        "rules": { "type": "array" },
+        "annotations": { "type": "object", "additionalProperties": true },
+        "labels": { "type": "object", "additionalProperties": true },
+        "httpRedirect": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "parentRefs": { "type": "array" },
+            "hostnames": { "type": "array", "items": { "type": "string" } },
+            "annotations": { "type": "object", "additionalProperties": true },
+            "labels": { "type": "object", "additionalProperties": true },
+            "scheme": { "type": "string" },
+            "statusCode": { "type": "integer", "enum": [301, 302] },
+            "port": { "type": ["string", "integer"] },
+            "path": { "type": "object", "additionalProperties": true }
+          }
+        }
       }
     },
     "pdb": {

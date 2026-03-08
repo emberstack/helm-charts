@@ -85,6 +85,15 @@ api:
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `image.pullSecrets` | Image pull secrets | `[]` |
 
+## Test Image Parameters
+
+| Parameter | Description | Default |
+|---|---|---|
+| `testImage.registry` | Test image registry | `docker.io` |
+| `testImage.repository` | Test image repository | `busybox` |
+| `testImage.tag` | Test image tag | `latest` |
+| `testImage.pullPolicy` | Test image pull policy | `IfNotPresent` |
+
 ## Deployment Parameters
 
 | Parameter | Description | Default |

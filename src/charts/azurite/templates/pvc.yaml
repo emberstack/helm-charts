@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "mssql.fullname" . }}
-  namespace: {{ include "mssql.namespace" . }}
+  name: {{ include "azurite.fullname" . }}
+  namespace: {{ include "azurite.namespace" . }}
   labels:
-    {{- include "mssql.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
   {{- $pvcAnnotations := dict }}
   {{- if .Values.persistence.resourcePolicy }}
   {{- $_ := set $pvcAnnotations "helm.sh/resource-policy" .Values.persistence.resourcePolicy }}

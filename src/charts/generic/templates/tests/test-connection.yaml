@@ -12,7 +12,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: wget
-      image: busybox
+      image: {{ include "common.images.image" (dict "imageRoot" .Values.testImage "context" $) }}
       command: ['wget']
       args: ['{{ include "generic.fullname" . }}:{{ .Values.service.port }}']
 {{- end }}

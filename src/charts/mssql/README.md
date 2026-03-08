@@ -98,7 +98,7 @@ helm upgrade --install mssql emberstack/mssql \
 | `deployment.enabled` | Deploy as Deployment | `true` |
 | `deployment.replicaCount` | Number of replicas | `1` |
 | `deployment.revisionHistoryLimit` | Revision history limit | `3` |
-| `deployment.updateStrategy.type` | Update strategy | `RollingUpdate` |
+| `deployment.updateStrategy.type` | Update strategy | `Recreate` |
 | `deployment.annotations` | Deployment annotations | `{}` |
 | `deployment.labels` | Deployment labels | `{}` |
 | `deployment.minReadySeconds` | Min seconds before pod is ready | `""` |

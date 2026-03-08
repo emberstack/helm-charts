@@ -1,0 +1,42 @@
+{{- if and .Values.metrics.enabled .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "redis.fullname" . }}
+  namespace: {{ .Values.serviceMonitor.namespace | default (include "redis.namespace" .) }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.serviceMonitor.annotations .Values.commonAnnotations) "context" $) | fromYaml }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "redis.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ include "redis.namespace" . | quote }}
+  endpoints:
+    - port: {{ .Values.serviceMonitor.port }}
+      path: {{ .Values.serviceMonitor.path }}
+      interval: {{ .Values.serviceMonitor.interval }}
+      {{- if .Values.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+      {{- end }}
+      {{- if .Values.serviceMonitor.honorLabels }}
+      honorLabels: true
+      {{- end }}
+      {{- with .Values.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

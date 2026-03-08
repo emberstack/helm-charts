@@ -1,0 +1,35 @@
+{{- if and .Values.config.content (not .Values.config.existingConfigMap) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "redis.fullname" . }}-config
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  redis.conf: |
+    {{- .Values.config.content | nindent 4 }}
+    {{- if .Values.tls.enabled }}
+    port 0
+    tls-port {{ .Values.tls.port }}
+    tls-cert-file /etc/redis/tls/{{ .Values.tls.certFilename }}
+    tls-key-file /etc/redis/tls/{{ .Values.tls.certKeyFilename }}
+    tls-ca-cert-file /etc/redis/tls/{{ .Values.tls.certCAFilename }}
+    {{- if .Values.tls.authClients }}
+    tls-auth-clients yes
+    {{- else }}
+    tls-auth-clients no
+    {{- end }}
+    tls-replication yes
+    {{- end }}
+    {{- if not .Values.persistence.enabled }}
+    save ""
+    {{- end }}
+    {{- if .Values.extraConfig }}
+    {{- .Values.extraConfig | nindent 4 }}
+    {{- end }}
+{{- end }}

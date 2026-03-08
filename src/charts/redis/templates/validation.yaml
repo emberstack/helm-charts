@@ -1,0 +1,45 @@
+{{/*
+Validate architecture value
+*/}}
+{{- $validArchitectures := list "standalone" "replication" "cluster" }}
+{{- if not (has .Values.architecture $validArchitectures) }}
+  {{- fail (printf "Invalid architecture '%s'. Must be one of: %s" .Values.architecture (join ", " $validArchitectures)) }}
+{{- end }}
+
+{{/*
+Validate sentinel is only used with replication architecture
+*/}}
+{{- if and .Values.sentinel.enabled (ne .Values.architecture "replication") }}
+  {{- fail "Sentinel can only be enabled with architecture: replication" }}
+{{- end }}
+
+{{/*
+Validate cluster replica count (total nodes must be >= 6 for 3 masters + 3 replicas minimum)
+*/}}
+{{- if eq .Values.architecture "cluster" }}
+  {{- $replicas := int (include "redis.replicaCount" .) }}
+  {{- if lt $replicas 3 }}
+    {{- fail "Cluster mode requires at least 3 replicas (for 3 master nodes)" }}
+  {{- end }}
+{{- end }}
+
+{{/*
+Validate replication requires at least 2 replicas
+*/}}
+{{- if and (eq .Values.architecture "replication") (lt (int .Values.replicaCount) 2) }}
+  {{- fail "Replication architecture requires at least 2 replicas" }}
+{{- end }}
+
+{{/*
+Validate autoscaling is only used with replication architecture
+*/}}
+{{- if and .Values.autoscaling.enabled (ne .Values.architecture "replication") }}
+  {{- fail "Autoscaling (HPA) can only be used with architecture: replication" }}
+{{- end }}
+
+{{/*
+Validate TLS existingSecret is set when TLS is enabled
+*/}}
+{{- if and .Values.tls.enabled (not .Values.tls.existingSecret) }}
+  {{- fail "tls.existingSecret must be set when tls.enabled is true" }}
+{{- end }}

@@ -1,0 +1,135 @@
+{{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "redis.fullname" . }}-scripts
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  # ---------------------------------------------------------------------------
+  # prestop-redis.sh
+  #
+  # Runs as a preStop lifecycle hook on the Redis container in sentinel mode.
+  # When this pod is the current master, we perform a graceful failover before
+  # the container stops, so clients experience minimal disruption:
+  #
+  #   1. CLIENT PAUSE — block all write operations for 22s so in-flight writes
+  #      complete but no new writes are accepted during the transition.
+  #   2. SENTINEL FAILOVER — ask the local sentinel to promote a replica.
+  #   3. Poll sentinel until the master IP is no longer ours (up to 20s).
+  #   4. Brief sleep to let clients discover the new master before we exit.
+  #
+  # If this pod is a replica, or redisShutdownWaitFailover is false, the hook
+  # exits immediately and lets Kubernetes terminate the container.
+  #
+  # Both preStop hooks (redis + sentinel) run in parallel when a pod is being
+  # terminated. The redis hook drives the failover; the sentinel hook just
+  # waits for it to finish before allowing the sentinel process to stop.
+  # ---------------------------------------------------------------------------
+  prestop-redis.sh: |
+    #!/bin/sh
+    set -e
+
+    # Wrappers that include loopback, port, TLS, and auth for each process.
+    # REDISCLI_AUTH handles redis auth; sentinel auth uses -a when configured
+    # separately, since sentinel may have its own requirepass.
+    redis_cli() {
+      redis-cli -h {{ include "redis.loopback" . }} -p {{ include "redis.port" . }}{{ include "redis.tls.cliArgs" . }} "$@"
+    }
+
+    sentinel_cli() {
+      redis-cli -h {{ include "redis.loopback" . }} -p {{ .Values.sentinel.port }}{{ include "redis.tls.cliArgs" . }}{{ if .Values.auth.sentinel }} -a "${REDIS_PASSWORD}"{{ end }} "$@"
+    }
+
+    {{- if .Values.auth.enabled }}
+    export REDISCLI_AUTH="${REDIS_PASSWORD}"
+    {{- end }}
+
+    # Determine our current role (master or replica)
+    ROLE=$(redis_cli role 2>/dev/null | head -1 || true)
+
+    if [ "$ROLE" = "master" ] && [ "{{ .Values.sentinel.redisShutdownWaitFailover }}" = "true" ]; then
+      # Freeze writes so clients get errors rather than writing to a master
+      # that is about to disappear. The 22s timeout gives enough headroom
+      # for the failover + client rediscovery.
+      redis_cli CLIENT PAUSE 22000 WRITE >/dev/null 2>&1 || true
+
+      # Tell sentinel to start an immediate failover election
+      sentinel_cli sentinel failover {{ .Values.sentinel.masterName }} >/dev/null 2>&1 || true
+
+      # Poll until sentinel reports a different master IP (failover complete)
+      MY_IP=$(hostname -i | awk '{print $1}')
+      n=0
+      while [ "$n" -lt 20 ]; do
+        CURRENT=$(sentinel_cli sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }} 2>/dev/null | head -1 || true)
+        if [ -n "$CURRENT" ] && [ "$CURRENT" != "$MY_IP" ]; then
+          break
+        fi
+        n=$((n + 1))
+        sleep 1
+      done
+
+      # Give clients a moment to pick up the new master from sentinel
+      sleep 3
+    fi
+
+  # ---------------------------------------------------------------------------
+  # prestop-sentinel.sh
+  #
+  # Runs as a preStop lifecycle hook on the Sentinel container.
+  # Sentinel doesn't need to initiate anything — the Redis preStop hook
+  # handles failover. This hook just ensures sentinel stays alive long enough
+  # for the failover to settle:
+  #
+  #   - If local Redis is still master: the Redis preStop is likely still
+  #     running the failover. Wait up to 25s for the master IP to change,
+  #     then sleep 5s for propagation.
+  #   - If local Redis is a replica: brief 2s sleep to let sentinel
+  #     deregister gracefully from the quorum.
+  #
+  # The combined timing (max ~30s) fits within the default
+  # terminationGracePeriodSeconds of 30.
+  # ---------------------------------------------------------------------------
+  prestop-sentinel.sh: |
+    #!/bin/sh
+    set -e
+
+    redis_cli() {
+      redis-cli -h {{ include "redis.loopback" . }} -p {{ include "redis.port" . }}{{ include "redis.tls.cliArgs" . }} "$@"
+    }
+
+    sentinel_cli() {
+      redis-cli -h {{ include "redis.loopback" . }} -p {{ .Values.sentinel.port }}{{ include "redis.tls.cliArgs" . }}{{ if .Values.auth.sentinel }} -a "${REDIS_PASSWORD}"{{ end }} "$@"
+    }
+
+    {{- if .Values.auth.enabled }}
+    export REDISCLI_AUTH="${REDIS_PASSWORD}"
+    {{- end }}
+
+    ROLE=$(redis_cli role 2>/dev/null | head -1 || true)
+
+    if [ "$ROLE" = "master" ]; then
+      # The Redis preStop hook is driving the failover in parallel.
+      # Wait here until sentinel confirms a new master has been elected.
+      MY_IP=$(hostname -i | awk '{print $1}')
+      n=0
+      while [ "$n" -lt 25 ]; do
+        CURRENT=$(sentinel_cli sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }} 2>/dev/null | head -1 || true)
+        if [ -n "$CURRENT" ] && [ "$CURRENT" != "$MY_IP" ]; then
+          break
+        fi
+        n=$((n + 1))
+        sleep 1
+      done
+      # Extra time for all sentinels to converge on the new master
+      sleep 5
+    else
+      # Not the master — just give sentinel a moment to cleanly leave
+      sleep 2
+    fi
+{{- end }}

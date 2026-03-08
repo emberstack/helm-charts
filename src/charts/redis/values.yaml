@@ -1,0 +1,407 @@
+## @section Global parameters
+global: {}
+  # image:
+  #   registry: ""
+  #   tag: ""
+  #   pullSecrets: []
+  # storageClass: ""
+
+## @section Common parameters
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+extraObjects: []
+clusterDomain: cluster.local
+
+## @section Image parameters
+image:
+  registry: docker.io
+  repository: redis
+  tag: "8.0.2"
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+## @section Architecture
+## Supported: standalone, replication, cluster
+architecture: standalone
+
+## @section Redis configuration
+## Base redis.conf content (applied to all nodes)
+config:
+  content: |
+    bind * -::*
+    protected-mode no
+    appendonly yes
+    save ""
+  existingConfigMap: ""
+  mountPath: /usr/local/etc/redis
+
+## Extra configuration appended after config.content (highest priority)
+extraConfig: ""
+## Extra command-line flags passed to redis-server
+extraFlags: []
+
+## Disable dangerous commands by renaming them to ""
+## Set to [] to allow all commands.
+## Note: disabling CONFIG will break the redis-exporter metrics sidecar,
+## which calls CONFIG GET to collect metrics. Consider using Redis ACLs
+## (Redis 6+) for per-user command restrictions instead of global renames.
+disableCommands: []
+  # - FLUSHDB
+  # - FLUSHALL
+  # - DEBUG
+  # - CONFIG
+  # - KEYS
+
+## @section Authentication
+auth:
+  enabled: true
+  ## Leave empty to auto-generate a random password
+  password: ""
+  ## Use an existing secret instead
+  existingSecret: ""
+  existingSecretKey: redis-password
+  ## Enable Sentinel authentication (uses same password as Redis unless overridden)
+  sentinel: false
+
+## @section TLS
+tls:
+  enabled: false
+  port: 6380
+  authClients: true
+  existingSecret: ""
+  certFilename: tls.crt
+  certKeyFilename: tls.key
+  certCAFilename: ca.crt
+
+## @section Replication parameters
+## Number of Redis pods (1 for standalone, 3+ for replication/cluster)
+replicaCount: 3
+
+## @section Sentinel parameters (only with architecture: replication)
+sentinel:
+  enabled: false
+  masterName: mymaster
+  port: 26379
+  quorum: 2
+  downAfterMilliseconds: 5000
+  failoverTimeout: 60000
+  parallelSyncs: 1
+  discoveryTimeout: 3
+  redisShutdownWaitFailover: true
+  config:
+    announceHostnames: true
+    loglevel: notice
+  image:
+    registry: ""
+    repository: ""
+    tag: ""
+    digest: ""
+    pullPolicy: ""
+  resources: {}
+  livenessProbe:
+    enabled: true
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  preStop:
+    enabled: true
+  extraVolumeMounts: []
+  ## Master service discovery for non-Sentinel-aware clients
+  ## Runs a sidecar that queries Sentinel and patches a service to point to the current master
+  masterService:
+    enabled: false
+    checkInterval: 10
+    ## Image used for pod labeling (needs sh and curl).
+    image:
+      registry: docker.io
+      repository: curlimages/curl
+      tag: latest
+      pullPolicy: Always
+
+## @section Cluster parameters (only with architecture: cluster)
+cluster:
+  ## Replicas per master node in cluster mode
+  replicaCount: 1
+  announceHostnames: true
+  config:
+    nodeTimeout: 15000
+    requireFullCoverage: true
+  initJob:
+    resources: {}
+
+## @section StatefulSet parameters
+statefulSet:
+  revisionHistoryLimit: 3
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  annotations: {}
+  labels: {}
+  minReadySeconds: ""
+
+## @section Diagnostic mode
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Container parameters
+command: []
+args: []
+extraContainerPorts: []
+
+livenessProbe:
+  enabled: true
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+customLivenessProbe: {}
+
+readinessProbe:
+  enabled: true
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+customReadinessProbe: {}
+
+startupProbe:
+  enabled: true
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 60
+  successThreshold: 1
+customStartupProbe: {}
+
+resources: {}
+resourcesPreset: ""
+
+lifecycleHooks: {}
+
+extraEnvVars: []
+extraEnvVarsCM: ""
+extraEnvVarsSecret: ""
+
+extraVolumeMounts: []
+extraVolumes: []
+
+initContainer:
+  resources: {}
+
+## @section Pod parameters
+podLabels: {}
+podAnnotations: {}
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 999
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  type: ""
+  key: ""
+  values: []
+affinity: {}
+
+nodeSelector: {}
+tolerations: []
+topologySpreadConstraints: []
+priorityClassName: ""
+schedulerName: ""
+terminationGracePeriodSeconds: 30
+dnsPolicy: ""
+dnsConfig: {}
+
+initContainers: []
+sidecars: []
+
+## @section Volume permissions init container
+## Runs chown on the data volume to match fsGroup
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: alpine
+    tag: "latest"
+    pullPolicy: Always
+  resources: {}
+
+## @section Sysctl init container
+## Tunes kernel parameters for Redis (vm.overcommit_memory, net.core.somaxconn)
+sysctl:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: alpine
+    tag: "latest"
+    pullPolicy: Always
+  command:
+    - /bin/sh
+    - -c
+    - |-
+      sysctl -w net.core.somaxconn=10000
+      echo never > /sys/kernel/mm/transparent_hugepage/enabled || true
+  mountHostSys: false
+  resources: {}
+
+## @section Autoscaling (HPA)
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 11
+  targetCPU: 50
+  targetMemory: ""
+  customMetrics: []
+
+## @section Service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @section RBAC
+rbac:
+  create: false
+  clusterRole:
+    rules: []
+  role:
+    rules: []
+
+## @section Service parameters
+service:
+  enabled: true
+  type: ClusterIP
+  port: 6379
+  clusterPort: 16379
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: ""
+  annotations: {}
+  labels: {}
+  extraPorts: []
+
+## @section PodDisruptionBudget parameters
+## Recommended for production replication/sentinel/cluster deployments.
+## Prevents Kubernetes from evicting too many Redis pods simultaneously
+## during node drains or cluster upgrades, which could cause data loss
+## or total outage. Not needed for standalone (single pod).
+pdb:
+  enabled: false
+  minAvailable: ""
+  maxUnavailable: 1
+
+## @section NetworkPolicy parameters
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+  allowExternalDNS: true
+
+## @section ServiceMonitor parameters (Prometheus Operator)
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  port: metrics
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: ""
+  labels: {}
+  annotations: {}
+  relabelings: []
+  metricRelabelings: []
+  honorLabels: false
+
+## @section Metrics exporter (redis-exporter sidecar)
+metrics:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: oliver006/redis_exporter
+    tag: v1.67.0
+    digest: ""
+    pullPolicy: IfNotPresent
+  extraArgs: []
+  resources: {}
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 9121
+    clusterIP: ""
+    annotations: {}
+    labels: {}
+
+## @section PrometheusRule (alerting rules)
+prometheusRule:
+  enabled: false
+  namespace: ""
+  labels: {}
+  rules: []
+  # - alert: RedisDown
+  #   expr: redis_up == 0
+  #   for: 2m
+  #   labels:
+  #     severity: critical
+  #   annotations:
+  #     summary: Redis instance is down
+
+## @section ConfigMap parameters
+configMap:
+  enabled: false
+  data: {}
+
+## @section Persistence parameters
+persistence:
+  enabled: true
+  resourcePolicy: ""
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 8Gi
+  existingClaim: ""
+  mountPath: /data
+  subPath: ""
+  annotations: {}
+
+## @section PVC retention policy (StatefulSet)
+persistentVolumeClaimRetentionPolicy:
+  enabled: false
+  whenDeleted: Retain
+  whenScaled: Retain
+
+## @section IP family
+## auto: use first IP from hostname -i
+## ipv4: force IPv4
+## ipv6: force IPv6
+ipFamily: auto

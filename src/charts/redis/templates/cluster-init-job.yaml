@@ -1,0 +1,115 @@
+{{- if eq .Values.architecture "cluster" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "redis.fullname" . }}-cluster-init
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
+    spec:
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
+      serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      {{- $podSecurityContext := include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}
+      {{- if $podSecurityContext }}
+      securityContext:
+        {{- $podSecurityContext | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: cluster-init
+          image: {{ include "redis.image" . }}
+          imagePullPolicy: {{ include "redis.imagePullPolicy" . }}
+          {{- $containerSecurityContext := include "common.security.renderContainerSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) }}
+          {{- if $containerSecurityContext }}
+          securityContext:
+            {{- $containerSecurityContext | nindent 12 }}
+          {{- end }}
+          {{- with .Values.cluster.initJob.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.auth.enabled }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ include "redis.secretKey" . }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              REDIS_PORT="{{ include "redis.port" . }}"
+              HEADLESS_SVC="{{ include "redis.headlessSvcFqdn" . }}"
+              REPLICAS={{ include "redis.replicaCount" . }}
+              CLUSTER_REPLICAS={{ .Values.cluster.replicaCount }}
+              {{- if .Values.auth.enabled }}
+              AUTH_ARGS="-a ${REDIS_PASSWORD}"
+              {{- else }}
+              AUTH_ARGS=""
+              {{- end }}
+              TLS_ARGS="{{ include "redis.tls.cliArgs" . }}"
+
+              echo "Waiting for all Redis nodes to be ready..."
+              for i in $(seq 0 $((REPLICAS - 1))); do
+                NODE="{{ include "redis.fullname" . }}-${i}.${HEADLESS_SVC}"
+                echo "Waiting for ${NODE}..."
+                until redis-cli -h "${NODE}" -p "${REDIS_PORT}" ${AUTH_ARGS} ${TLS_ARGS} ping 2>/dev/null | grep -q PONG; do
+                  sleep 2
+                done
+                echo "${NODE} is ready"
+              done
+
+              # Check if cluster is already initialized
+              CLUSTER_INFO=$(redis-cli -h "{{ include "redis.fullname" . }}-0.${HEADLESS_SVC}" -p "${REDIS_PORT}" ${AUTH_ARGS} ${TLS_ARGS} cluster info 2>/dev/null || echo "")
+              if echo "${CLUSTER_INFO}" | grep -q "cluster_state:ok"; then
+                echo "Cluster is already initialized"
+                exit 0
+              fi
+
+              # Build node list
+              NODES=""
+              for i in $(seq 0 $((REPLICAS - 1))); do
+                {{- if .Values.cluster.announceHostnames }}
+                NODE="{{ include "redis.fullname" . }}-${i}.${HEADLESS_SVC}:${REDIS_PORT}"
+                {{- else }}
+                NODE_IP=$(getent hosts "{{ include "redis.fullname" . }}-${i}.${HEADLESS_SVC}" | awk '{print $1}')
+                NODE="${NODE_IP}:${REDIS_PORT}"
+                {{- end }}
+                NODES="${NODES} ${NODE}"
+              done
+
+              echo "Creating cluster with nodes: ${NODES}"
+              redis-cli --cluster create ${NODES} \
+                --cluster-replicas ${CLUSTER_REPLICAS} \
+                --cluster-yes \
+                ${AUTH_ARGS} ${TLS_ARGS}
+
+              echo "Cluster created successfully"
+          {{- if .Values.tls.enabled }}
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /etc/redis/tls
+              readOnly: true
+      volumes:
+        - name: tls-certs
+          secret:
+            secretName: {{ .Values.tls.existingSecret }}
+          {{- end }}
+{{- end }}

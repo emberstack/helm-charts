@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "redis.fullname" . }}-health
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  ping_liveness_local.sh: |-
+    #!/bin/sh
+    {{- if .Values.auth.enabled }}
+    export REDISCLI_AUTH="${REDIS_PASSWORD}"
+    {{- end }}
+    response=$(
+      redis-cli \
+        -h {{ include "redis.loopback" . }} \
+        -p {{ include "redis.port" . }} \
+        {{- if .Values.tls.enabled }}
+        {{ include "redis.tls.cliArgs" . | trim }} \
+        {{- end }}
+        ping
+    )
+    if [ "$response" != "PONG" ] && [ "$response" != "LOADING Redis is loading the dataset in memory" ] && [ "${response%%:*}" != "MASTERDOWN" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_local.sh: |-
+    #!/bin/sh
+    {{- if .Values.auth.enabled }}
+    export REDISCLI_AUTH="${REDIS_PASSWORD}"
+    {{- end }}
+    response=$(
+      redis-cli \
+        -h {{ include "redis.loopback" . }} \
+        -p {{ include "redis.port" . }} \
+        {{- if .Values.tls.enabled }}
+        {{ include "redis.tls.cliArgs" . | trim }} \
+        {{- end }}
+        ping
+    )
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+    {{- if and (ne .Values.architecture "standalone") (not .Values.sentinel.enabled) }}
+    # For replicas: check replication link is up
+    role=$(redis-cli -h {{ include "redis.loopback" . }} -p {{ include "redis.port" . }}{{ include "redis.tls.cliArgs" . }} info replication 2>/dev/null)
+    if echo "$role" | grep -q "role:slave"; then
+      master_link=$(echo "$role" | grep "master_link_status" | tr -d '\r')
+      if echo "$master_link" | grep -q "down"; then
+        echo "Replication link is down"
+        exit 1
+      fi
+    fi
+    {{- end }}
+  {{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+  ping_sentinel.sh: |-
+    #!/bin/sh
+    {{- if .Values.auth.sentinel }}
+    export REDISCLI_AUTH="${REDIS_PASSWORD}"
+    {{- else }}
+    unset REDISCLI_AUTH
+    {{- end }}
+    response=$(
+      redis-cli \
+        -h {{ include "redis.loopback" . }} \
+        -p {{ .Values.sentinel.port }} \
+        {{- if .Values.tls.enabled }}
+        {{ include "redis.tls.cliArgs" . | trim }} \
+        {{- end }}
+        ping
+    )
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_local_and_master.sh: |-
+    #!/bin/sh
+    {{- if .Values.auth.enabled }}
+    export REDISCLI_AUTH="${REDIS_PASSWORD}"
+    {{- end }}
+    response=$(
+      redis-cli \
+        -h {{ include "redis.loopback" . }} \
+        -p {{ include "redis.port" . }} \
+        {{- if .Values.tls.enabled }}
+        {{ include "redis.tls.cliArgs" . | trim }} \
+        {{- end }}
+        ping
+    )
+    if [ "$response" != "PONG" ] && [ "$response" != "LOADING Redis is loading the dataset in memory" ] && [ "${response%%:*}" != "MASTERDOWN" ]; then
+      echo "$response"
+      exit 1
+    fi
+    # In sentinel mode: also check we can resolve the master
+    {{- if .Values.auth.sentinel }}
+    export REDISCLI_AUTH="${REDIS_PASSWORD}"
+    {{- else }}
+    unset REDISCLI_AUTH
+    {{- end }}
+    master_info=$(
+      redis-cli \
+        -h {{ include "redis.loopback" . }} \
+        -p {{ .Values.sentinel.port }} \
+        {{- if .Values.tls.enabled }}
+        {{ include "redis.tls.cliArgs" . | trim }} \
+        {{- end }}
+        sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }} 2>/dev/null | head -1
+    )
+    if [ -z "$master_info" ]; then
+      echo "Sentinel cannot resolve master"
+      exit 1
+    fi
+  {{- end }}

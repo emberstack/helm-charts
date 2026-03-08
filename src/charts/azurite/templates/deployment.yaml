@@ -2,10 +2,10 @@
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ include "mssql.fullname" . }}
-  namespace: {{ include "mssql.namespace" . }}
+  name: {{ include "azurite.fullname" . }}
+  namespace: {{ include "azurite.namespace" . }}
   labels:
-    {{- include "mssql.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
     {{- with .Values.deployment.labels }}
     {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
     {{- end }}
@@ -21,8 +21,8 @@ spec:
   minReadySeconds: {{ .Values.deployment.minReadySeconds }}
   {{- end }}
   strategy:
-    type: {{ .Values.deployment.updateStrategy.type | default "RollingUpdate" }}
-    {{- if eq (.Values.deployment.updateStrategy.type | default "RollingUpdate") "RollingUpdate" }}
+    type: {{ .Values.deployment.updateStrategy.type | default "Recreate" }}
+    {{- if eq (.Values.deployment.updateStrategy.type | default "Recreate") "RollingUpdate" }}
     {{- with .Values.deployment.updateStrategy.rollingUpdate }}
     rollingUpdate:
       {{- toYaml . | nindent 6 }}
@@ -30,23 +30,20 @@ spec:
     {{- end }}
   selector:
     matchLabels:
-      {{- include "mssql.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
+      {{- include "azurite.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "mssql.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
-        {{- $podLabels := include "mssql.podLabels" . }}
+        {{- include "azurite.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
+        {{- $podLabels := include "azurite.podLabels" . }}
         {{- if $podLabels }}
         {{- $podLabels | nindent 8 }}
         {{- end }}
-      {{- $podAnnotations := include "mssql.podAnnotations" . }}
-      {{- if or $podAnnotations .Values.configMap.enabled (not (default dict .Values.configuration).existingSecret) }}
+      {{- $podAnnotations := include "azurite.podAnnotations" . }}
+      {{- if or $podAnnotations .Values.configMap.enabled }}
       annotations:
         {{- if .Values.configMap.enabled }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        {{- end }}
-        {{- if not (default dict .Values.configuration).existingSecret }}
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         {{- end }}
         {{- if $podAnnotations }}
         {{- $podAnnotations | nindent 8 }}
@@ -54,7 +51,7 @@ spec:
       {{- end }}
     spec:
       {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
-      serviceAccountName: {{ include "mssql.serviceAccountName" . }}
+      serviceAccountName: {{ include "azurite.serviceAccountName" . }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
@@ -114,24 +111,26 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
       {{- end }}
       containers:
-        - name: mssql
-          image: {{ include "mssql.image" . }}
-          imagePullPolicy: {{ include "mssql.imagePullPolicy" . }}
-          {{- if or .Values.command .Values.diagnosticMode.enabled }}
+        - name: azurite
+          image: {{ include "azurite.image" . }}
+          imagePullPolicy: {{ include "azurite.imagePullPolicy" . }}
+          {{- if .Values.diagnosticMode.enabled }}
           command:
-            {{- if .Values.diagnosticMode.enabled }}
             {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
-            {{- else }}
-            {{- toYaml .Values.command | nindent 12 }}
-            {{- end }}
-          {{- end }}
-          {{- if or .Values.args .Values.diagnosticMode.enabled }}
           args:
-            {{- if .Values.diagnosticMode.enabled }}
             {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
-            {{- else }}
+          {{- else if .Values.command }}
+          command:
+            {{- toYaml .Values.command | nindent 12 }}
+          {{- if .Values.args }}
+          args:
             {{- toYaml .Values.args | nindent 12 }}
-            {{- end }}
+          {{- end }}
+          {{- else }}
+          command:
+            - sh
+            - -c
+            - {{ include "azurite.args" . | quote }}
           {{- end }}
           {{- $containerSecurityContext := include "common.security.renderContainerSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) }}
           {{- if $containerSecurityContext }}
@@ -139,18 +138,29 @@ spec:
             {{- $containerSecurityContext | nindent 12 }}
           {{- end }}
           ports:
-            - name: mssql
-              containerPort: {{ .Values.containerPort }}
+            {{- if .Values.configuration.blobEnabled }}
+            - name: blob
+              containerPort: 10000
               protocol: TCP
+            {{- end }}
+            {{- if .Values.configuration.queueEnabled }}
+            - name: queue
+              containerPort: 10001
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.configuration.tableEnabled }}
+            - name: table
+              containerPort: 10002
+              protocol: TCP
+            {{- end }}
             {{- with .Values.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
             {{- end }}
+          {{- $extraEnvVars := include "azurite.extraEnvVars" . }}
+          {{- if $extraEnvVars }}
           env:
-            {{- include "mssql.envVars" . | nindent 12 }}
-            {{- $extraEnvVars := include "mssql.extraEnvVars" . }}
-            {{- if $extraEnvVars }}
             {{- $extraEnvVars | nindent 12 }}
-            {{- end }}
+          {{- end }}
           {{- if or .Values.extraEnvVarsCM .Values.extraEnvVarsSecret }}
           envFrom:
             {{- if .Values.extraEnvVarsCM }}
@@ -199,11 +209,13 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            {{- if not .Values.configuration.inMemoryPersistence }}
             - name: data
-              mountPath: {{ .Values.persistence.mountPath }}
+              mountPath: {{ default "/data" .Values.persistence.mountPath }}
               {{- if and .Values.persistence.enabled .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
+            {{- end }}
             {{- with .Values.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
             {{- end }}
@@ -213,6 +225,7 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
+        {{- if not .Values.configuration.inMemoryPersistence }}
         - name: data
           {{- if .Values.persistence.enabled }}
           {{- if .Values.persistence.existingClaim }}
@@ -220,11 +233,12 @@ spec:
             claimName: {{ .Values.persistence.existingClaim }}
           {{- else }}
           persistentVolumeClaim:
-            claimName: {{ include "mssql.fullname" . }}
+            claimName: {{ include "azurite.fullname" . }}
           {{- end }}
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- end }}
         {{- with .Values.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
         {{- end }}

@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "redis.fullname" . }}-test-connection
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 2 }}
+  restartPolicy: Never
+  {{- $podSecurityContext := include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}
+  {{- if $podSecurityContext }}
+  securityContext:
+    {{- $podSecurityContext | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: redis-test
+      image: {{ include "redis.image" . }}
+      imagePullPolicy: {{ include "redis.imagePullPolicy" . }}
+      securityContext:
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      {{- if .Values.auth.enabled }}
+      env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "redis.secretName" . }}
+              key: {{ include "redis.secretKey" . }}
+      {{- end }}
+      {{- if .Values.tls.enabled }}
+      volumeMounts:
+        - name: tls-certs
+          mountPath: /etc/redis/tls
+          readOnly: true
+      {{- end }}
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          {{- if .Values.auth.enabled }}
+          AUTH_ARGS="-a ${REDIS_PASSWORD}"
+          {{- else }}
+          AUTH_ARGS=""
+          {{- end }}
+
+          SVC="{{ include "redis.fullname" . }}"
+          CLI_ARGS="-p {{ include "redis.port" . }}{{ include "redis.tls.cliArgs" . }}{{ if eq .Values.architecture "cluster" }} -c{{ end }} ${AUTH_ARGS}"
+
+          {{- if and .Values.sentinel.enabled (eq .Values.architecture "replication") }}
+          # Discover the current master from sentinel
+          {{- if .Values.auth.sentinel }}
+          SENTINEL_AUTH="-a ${REDIS_PASSWORD}"
+          {{- else }}
+          SENTINEL_AUTH=""
+          {{- end }}
+          MASTER=$(redis-cli -h ${SVC} -p {{ .Values.sentinel.port }}{{ include "redis.tls.cliArgs" . }} ${SENTINEL_AUTH} sentinel get-master-addr-by-name {{ .Values.sentinel.masterName }} 2>/dev/null | head -1)
+          if [ -z "$MASTER" ]; then
+            echo "FAIL: Sentinel could not resolve master"
+            exit 1
+          fi
+          echo "Sentinel reports master: ${MASTER}"
+          {{- else if ne .Values.architecture "standalone" }}
+          MASTER="{{ include "redis.fullname" . }}-0.{{ include "redis.fullname" . }}-headless"
+          {{- else }}
+          MASTER="${SVC}"
+          {{- end }}
+
+          echo "Testing Redis connectivity via service..."
+          RESULT=$(redis-cli -h ${SVC} ${CLI_ARGS} ping)
+          if [ "$RESULT" = "PONG" ]; then
+            echo "SUCCESS: Redis responded with PONG"
+          else
+            echo "FAIL: Expected PONG but got: $RESULT"
+            exit 1
+          fi
+
+          echo "Testing SET/GET on master (${MASTER})..."
+          redis-cli -h ${MASTER} ${CLI_ARGS} SET helm-test-key "helm-test-value"
+          GET_RESULT=$(redis-cli -h ${MASTER} ${CLI_ARGS} GET helm-test-key)
+          if [ "$GET_RESULT" = "helm-test-value" ]; then
+            echo "SUCCESS: SET/GET working correctly"
+          else
+            echo "FAIL: Expected 'helm-test-value' but got: $GET_RESULT"
+            exit 1
+          fi
+
+          redis-cli -h ${MASTER} ${CLI_ARGS} DEL helm-test-key
+          echo "All tests passed!"
+  {{- if .Values.tls.enabled }}
+  volumes:
+    - name: tls-certs
+      secret:
+        secretName: {{ .Values.tls.existingSecret }}
+  {{- end }}

@@ -1,0 +1,21 @@
+Azurite (Azure Storage Emulator) has been deployed.
+
+{{- $host := printf "%s.%s.svc.cluster.local" (include "azurite.fullname" .) (include "azurite.namespace" .) }}
+
+Connection details:
+  Host: {{ $host }}
+{{- if .Values.configuration.blobEnabled }}
+  Blob:  port {{ .Values.service.blobPort }}
+{{- end }}
+{{- if .Values.configuration.queueEnabled }}
+  Queue: port {{ .Values.service.queuePort }}
+{{- end }}
+{{- if .Values.configuration.tableEnabled }}
+  Table: port {{ .Values.service.tablePort }}
+{{- end }}
+
+Default connection string:
+  DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;
+{{- if .Values.configuration.blobEnabled }}BlobEndpoint=http://{{ $host }}:{{ .Values.service.blobPort }}/devstoreaccount1;{{- end }}
+{{- if .Values.configuration.queueEnabled }}QueueEndpoint=http://{{ $host }}:{{ .Values.service.queuePort }}/devstoreaccount1;{{- end }}
+{{- if .Values.configuration.tableEnabled }}TableEndpoint=http://{{ $host }}:{{ .Values.service.tablePort }}/devstoreaccount1;{{- end }}
