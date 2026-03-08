@@ -5,6 +5,7 @@ type: application
 kubeVersion: ">= 1.24.0-0"
 version: 1.0.0
 appVersion: "8.0.2"
+icon: https://raw.githubusercontent.com/emberstack/helm-charts/main/src/assets/img/redis/chart-logo.png
 home: https://github.com/emberstack/helm-charts
 sources:
   - https://github.com/emberstack/helm-charts
