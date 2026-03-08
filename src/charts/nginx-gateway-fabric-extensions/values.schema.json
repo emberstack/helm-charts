@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values shared across parent and subcharts",
+      "additionalProperties": true
+    },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "namespaceOverride": { "type": "string" },
+    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
+    "clientSettingsPolicies": { "type": "array", "description": "List of ClientSettingsPolicy resources" },
+    "observabilityPolicies": { "type": "array", "description": "List of ObservabilityPolicy resources" },
+    "rateLimitPolicies": { "type": "array", "description": "List of RateLimitPolicy resources" },
+    "upstreamSettingsPolicies": { "type": "array", "description": "List of UpstreamSettingsPolicy resources" },
+    "proxySettingsPolicies": { "type": "array", "description": "List of ProxySettingsPolicy resources" },
+    "snippetsPolicies": { "type": "array", "description": "List of SnippetsPolicy resources" },
+    "snippetsFilters": { "type": "array", "description": "List of SnippetsFilter resources" }
+  }
+}

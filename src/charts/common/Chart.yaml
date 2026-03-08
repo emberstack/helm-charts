@@ -4,6 +4,7 @@ description: A library Helm chart that provides common templates and helpers
 type: library
 version: 1.0.0
 appVersion: 1.0.0
+icon: https://raw.githubusercontent.com/emberstack/helm-charts/main/assets/helm_icon_generic.png
 home: https://github.com/emberstack/helm-charts
 sources:
   - https://github.com/emberstack/helm-charts

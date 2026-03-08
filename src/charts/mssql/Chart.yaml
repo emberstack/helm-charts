@@ -5,7 +5,7 @@ type: application
 kubeVersion: ">= 1.24.0-0"
 version: 1.0.0
 appVersion: "2025"
-icon: https://raw.githubusercontent.com/emberstack/helm-charts/main/src/assets/img/mssql/chart-logo.png
+icon: https://raw.githubusercontent.com/emberstack/helm-charts/main/src/charts/mssql/icon.png
 home: https://github.com/emberstack/helm-charts
 sources:
   - https://github.com/emberstack/helm-charts

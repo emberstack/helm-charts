@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values shared across parent and subcharts",
+      "additionalProperties": true
+    },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "namespaceOverride": { "type": "string" },
+    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
+    "gateways": {
+      "type": "object",
+      "description": "Map of Gateway resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "name": { "type": "string" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "gatewayClassName": { "type": "string" },
+          "listeners": { "type": "array" },
+          "addresses": { "type": "array" },
+          "infrastructure": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "httpRoutes": {
+      "type": "object",
+      "description": "Map of HTTPRoute resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "name": { "type": "string" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "parentRefs": { "type": "array" },
+          "hostnames": { "type": "array", "items": { "type": "string" } },
+          "rules": { "type": "array" }
+        }
+      }
+    },
+    "referenceGrants": {
+      "type": "object",
+      "description": "Map of ReferenceGrant resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "name": { "type": "string" },
+          "fullnameOverride": { "type": "string" },
+          "from": { "type": "array" },
+          "to": { "type": "array" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values shared across parent and subcharts",
+      "additionalProperties": true
+    },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "namespaceOverride": { "type": "string" },
+    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
+    "issuers": { "type": "array", "description": "List of cert-manager Issuer resources" },
+    "clusterIssuers": { "type": "array", "description": "List of cert-manager ClusterIssuer resources" },
+    "certificates": {
+      "type": "object",
+      "description": "Map of cert-manager Certificate resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "name": { "type": "string" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "secretName": { "type": "string" },
+          "issuerRef": { "type": "object", "additionalProperties": true },
+          "dnsNames": { "type": "array", "items": { "type": "string" } },
+          "extraDnsNames": { "type": "array", "items": { "type": "string" } },
+          "ipAddresses": { "type": "array", "items": { "type": "string" } },
+          "emailAddresses": { "type": "array", "items": { "type": "string" } },
+          "uriSans": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

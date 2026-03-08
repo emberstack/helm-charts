@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values shared across parent and subcharts",
+      "additionalProperties": true
+    },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "namespaceOverride": { "type": "string" },
+    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
+    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
+    "webApplicationFirewallPolicies": {
+      "type": "object",
+      "description": "Map of WebApplicationFirewallPolicy resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "targetRef": { "type": "object", "additionalProperties": true },
+          "webApplicationFirewall": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "healthCheckPolicies": {
+      "type": "object",
+      "description": "Map of HealthCheckPolicy resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "targetRef": { "type": "object", "additionalProperties": true },
+          "default": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "routePolicies": {
+      "type": "object",
+      "description": "Map of RoutePolicy resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "targetRef": { "type": "object", "additionalProperties": true },
+          "default": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "frontendTLSPolicies": {
+      "type": "object",
+      "description": "Map of FrontendTLSPolicy resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "targetRef": { "type": "object", "additionalProperties": true },
+          "default": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "backendTLSPolicies": {
+      "type": "object",
+      "description": "Map of BackendTLSPolicy resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "targetRef": { "type": "object", "additionalProperties": true },
+          "default": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "backendLoadBalancingPolicies": {
+      "type": "object",
+      "description": "Map of BackendLoadBalancingPolicy resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "fullnameOverride": { "type": "string" },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "targetRefs": { "type": "array" },
+          "loadBalancing": { "type": "object", "additionalProperties": true },
+          "circuitBreaker": { "type": "object", "additionalProperties": true }
+        }
+      }
+    }
+  }
+}

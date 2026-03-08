@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "description": "Library chart — no deployable values. Consuming charts should define their own schema.",
+  "additionalProperties": true,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global values shared across parent and subcharts",
+      "additionalProperties": true,
+      "properties": {
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "registry": { "type": "string", "description": "Override image registry for all containers" },
+            "tag": { "type": "string", "description": "Override image tag for all containers" },
+            "pullSecrets": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "storageClass": { "type": "string" },
+        "defaultStorageClass": { "type": "string" },
+        "kubeVersion": { "type": "string" },
+        "apiVersions": { "type": "array", "items": { "type": "string" } },
+        "compatibility": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "openshift": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "adaptSecurityContext": { "type": "string", "enum": ["auto", "force", "disabled"] }
+              }
+            },
+            "omitEmptySeLinuxOptions": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}
