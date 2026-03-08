@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}-health
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  startup.sh: |-
+    #!/bin/sh
+    rabbitmq-diagnostics -q check_port_connectivity
+  liveness.sh: |-
+    #!/bin/sh
+    rabbitmq-diagnostics -q status
+  readiness.sh: |-
+    #!/bin/sh
+    rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms

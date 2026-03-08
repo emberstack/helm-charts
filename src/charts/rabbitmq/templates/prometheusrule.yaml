@@ -1,0 +1,23 @@
+{{- if and .Values.metrics.enabled .Values.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  namespace: {{ .Values.prometheusRule.namespace | default (include "rabbitmq.namespace" .) }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- with .Values.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  groups:
+    {{- with .Values.prometheusRule.rules }}
+    - name: {{ include "rabbitmq.fullname" $ }}
+      rules:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+{{- end }}

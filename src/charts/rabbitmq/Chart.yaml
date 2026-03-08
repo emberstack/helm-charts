@@ -1,0 +1,22 @@
+apiVersion: v2
+name: rabbitmq
+description: A Helm chart for deploying RabbitMQ on Kubernetes
+type: application
+kubeVersion: ">= 1.24.0-0"
+version: 1.0.0
+appVersion: "latest"
+home: https://github.com/emberstack/helm-charts
+sources:
+  - https://github.com/emberstack/helm-charts
+maintainers:
+  - name: emberstack
+    email: helm-charts@emberstack.com
+keywords:
+  - rabbitmq
+  - message-queue
+  - amqp
+  - messaging
+dependencies:
+  - name: common
+    version: "1.x.x"
+    repository: "file://../common"

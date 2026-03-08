@@ -1,0 +1,509 @@
+## @section Global parameters
+global: {}
+  # image:
+  #   registry: ""
+  #   tag: ""
+  #   pullSecrets: []
+  # storageClass: ""
+
+## @section Common parameters
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+extraObjects: []
+clusterDomain: cluster.local
+
+## @section Image parameters
+image:
+  registry: docker.io
+  repository: rabbitmq
+  tag: "management"
+  digest: ""
+  pullPolicy: Always
+  pullSecrets: []
+
+## @section RabbitMQ configuration
+## Base rabbitmq.conf content placed in conf.d/10-default.conf.
+## The init container copies this to a writable emptyDir and appends dynamic config
+## (watermarks, disk limits, TLS, LDAP, etc.) before RabbitMQ starts.
+config:
+  content: |
+    ## Cluster formation (k8s peer discovery uses env vars K8S_SERVICE_NAME,
+    ## K8S_ADDRESS_TYPE, K8S_HOSTNAME_SUFFIX — set by the chart automatically)
+    cluster_formation.peer_discovery_backend = rabbit_peer_discovery_k8s
+    cluster_formation.node_cleanup.interval = 10
+    cluster_formation.node_cleanup.only_log_warning = true
+    ## Logging (console only, no file logging for readOnlyRootFilesystem)
+    log.console = true
+    log.console.level = info
+    log.file = false
+  existingConfigMap: ""
+
+## Extra Erlang VM flags appended to RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
+## Example: "+hms 8192" to set heap minimum size
+extraFlags: ""
+
+## Erlang scheduler tuning (maps to +S and +stbt ERL_ARGS)
+maxAvailableSchedulers: ""
+onlineSchedulers: ""
+
+## Extra configuration appended after config.content (highest priority)
+extraConfig: ""
+## Advanced configuration (advanced.config Erlang terms)
+advancedConfig: ""
+
+## @section Load definitions
+## Load RabbitMQ definitions (exchanges, queues, bindings, users, vhosts, etc.)
+loadDefinition:
+  enabled: false
+  existingSecret: ""
+  ## Inline definitions (JSON format) - used if existingSecret is not set
+  content: {}
+
+## @section Definitions auto-reload sidecar
+## Watches for definition changes and reloads them automatically
+definitionsReload:
+  enabled: false
+  checkInterval: 10
+  image:
+    registry: docker.io
+    repository: curlimages/curl
+    tag: latest
+    pullPolicy: Always
+  resources: {}
+
+## Memory high watermark configuration
+memoryHighWatermark:
+  enabled: true
+  ## Type: "relative" (fraction of RAM) or "absolute" (bytes, e.g. 1GB)
+  type: relative
+  value: 0.4
+
+## Disk free space limit
+diskFreeLimit:
+  enabled: true
+  ## Type: "absolute" (e.g. 1GB) or "relative" (fraction of RAM, e.g. 1.0)
+  type: absolute
+  value: 1GB
+
+## TCP listen options
+tcpListenOptions:
+  backlog: 128
+  nodelay: true
+  linger:
+    enabled: true
+    timeout: 0
+  keepalive: false
+
+## Plugins to enable
+plugins:
+  - rabbitmq_management
+  - rabbitmq_peer_discovery_k8s
+  - rabbitmq_prometheus
+
+## Community plugins to download (URLs to .ez files)
+## Downloaded by init container. Sets RABBITMQ_PLUGINS_DIR to include /plugins.
+communityPlugins: []
+  # - https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v4.1.0/rabbitmq_delayed_message_exchange-4.1.0.ez
+
+## @section Authentication
+auth:
+  username: user
+  ## Leave empty to auto-generate a random password
+  password: ""
+  ## Leave empty to auto-generate a random Erlang cookie
+  erlangCookie: ""
+  ## Use an existing secret instead
+  existingSecret: ""
+  existingSecretPasswordKey: rabbitmq-password
+  existingSecretErlangCookieKey: rabbitmq-erlang-cookie
+  ## Allow the guest user to connect from remote hosts (sets loopback_users = none).
+  ## Only affects the "guest" user. Disable for production.
+  allowRemoteGuest: false
+
+## @section LDAP authentication
+ldap:
+  enabled: false
+  servers: []
+  port: 389
+  userDnPattern: ""
+  tls:
+    enabled: false
+    startTls: false
+    skipVerify: false
+    existingSecret: ""
+    certFilename: tls.crt
+    certKeyFilename: tls.key
+    certCAFilename: ca.crt
+
+## @section TLS
+tls:
+  enabled: false
+  port: 5671
+  managementPort: 15671
+  failIfNoPeerCert: false
+  sslOptionsVerify: verify_peer
+  existingSecret: ""
+  certFilename: tls.crt
+  certKeyFilename: tls.key
+  certCAFilename: ca.crt
+
+## @section Clustering parameters
+clustering:
+  enabled: true
+  forceBoot: false
+  ## Cluster partition handling strategy: pause_minority, autoheal, ignore
+  ## pause_minority is recommended for quorum queues (RabbitMQ 4.x default workload)
+  partitionHandling: pause_minority
+  ## Queue leader locator strategy: client-local, balanced
+  queueLeaderLocator: balanced
+  ## To rebalance queues when a new node joins, use initScripts:
+  ##   rabbitmq-queues rebalance all
+
+## @section Replication parameters
+## Number of RabbitMQ pods
+replicaCount: 3
+
+## @section StatefulSet parameters
+statefulSet:
+  revisionHistoryLimit: 3
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  annotations: {}
+  labels: {}
+  minReadySeconds: ""
+
+## @section Diagnostic mode
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Container parameters
+## Override the Docker entrypoint. Leave empty to use the official image's
+## docker-entrypoint.sh which handles .erlang.cookie and other initialization.
+command: []
+args: []
+extraContainerPorts: []
+
+livenessProbe:
+  enabled: true
+  periodSeconds: 30
+  timeoutSeconds: 20
+  failureThreshold: 6
+  successThreshold: 1
+customLivenessProbe: {}
+
+readinessProbe:
+  enabled: true
+  periodSeconds: 10
+  timeoutSeconds: 20
+  failureThreshold: 3
+  successThreshold: 1
+customReadinessProbe: {}
+
+startupProbe:
+  enabled: true
+  periodSeconds: 10
+  timeoutSeconds: 20
+  failureThreshold: 30
+  successThreshold: 1
+customStartupProbe: {}
+
+resources: {}
+resourcesPreset: ""
+
+lifecycleHooks: {}
+
+## Graceful shutdown — sleeps briefly to let endpoint updates propagate, then runs
+## rabbitmqctl stop_app to gracefully leave the cluster. The timeout keeps PID 1 alive
+## after stop_app so other nodes have time to update cluster state.
+## Ensure terminationGracePeriodSeconds > drainDelay + stop_app time + timeout.
+gracefulShutdown:
+  enabled: true
+  drainDelay: 5
+  timeout: 90
+
+extraEnvVars: []
+extraEnvVarsCM: ""
+extraEnvVarsSecret: ""
+
+extraVolumeMounts: []
+extraVolumes: []
+
+initContainer:
+  resources: {}
+
+## @section Pod parameters
+podLabels: {}
+podAnnotations: {}
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 999
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  type: ""
+  key: ""
+  values: []
+affinity: {}
+
+nodeSelector: {}
+tolerations: []
+topologySpreadConstraints: []
+priorityClassName: ""
+schedulerName: ""
+terminationGracePeriodSeconds: 180
+dnsPolicy: ""
+dnsConfig: {}
+
+initContainers: []
+
+## Custom initialization scripts mounted at /etc/rabbitmq/init-scripts.
+## Use for post-startup operations like feature flags, queue rebalancing, or policies:
+##   enable-flags.sh: |
+##     #!/bin/sh
+##     rabbitmq-feature-flags enable <flag_name>
+##   rebalance.sh: |
+##     #!/bin/sh
+##     rabbitmq-queues rebalance all
+initScripts: {}
+  # my-init.sh: |
+  #   #!/bin/sh
+  #   rabbitmqctl set_policy ...
+initScriptsCM: ""
+initScriptsSecret: ""
+
+sidecars: []
+
+## @section Volume permissions init container
+## Runs chown on the data volume to match fsGroup
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: alpine
+    tag: "latest"
+    pullPolicy: Always
+  resources: {}
+
+## @section Sysctl init container
+## Tunes kernel parameters for RabbitMQ
+sysctl:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: alpine
+    tag: "latest"
+    pullPolicy: Always
+  command:
+    - /bin/sh
+    - -c
+    - |-
+      sysctl -w net.core.somaxconn=10000
+  mountHostSys: false
+  resources: {}
+
+## @section Autoscaling (HPA)
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 11
+  targetCPU: 50
+  targetMemory: ""
+  customMetrics: []
+
+## @section Service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: true
+
+## @section RBAC
+## Required for peer discovery via the Kubernetes API
+rbac:
+  create: true
+  clusterRole:
+    rules: []
+  role:
+    rules: []
+
+## @section Service parameters
+service:
+  enabled: true
+  type: ClusterIP
+  amqpPort: 5672
+  managementPort: 15672
+  distPort: 25672
+  prometheusPort: 15692
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: ""
+  annotations: {}
+  labels: {}
+  extraPorts: []
+
+## @section Ingress parameters
+## Configure the ingress resource for the RabbitMQ Management console
+ingress:
+  enabled: false
+  ingressClassName: ""
+  hostname: ""
+  path: /
+  pathType: Prefix
+  annotations: {}
+  labels: {}
+  tls: false
+  extraHosts: []
+    # - name: rabbitmq.local
+    #   path: /
+  extraTls: []
+    # - hosts:
+    #     - rabbitmq.local
+    #   secretName: rabbitmq-tls
+  extraRules: []
+
+## @section HTTPRoute parameters (Gateway API)
+## Configure the HTTPRoute resource for the RabbitMQ Management console
+httpRoute:
+  enabled: false
+  parentRefs: []
+    # - name: my-gateway
+    #   namespace: gateway-ns
+    #   sectionName: https
+  hostnames: []
+  rules: []
+    # - matches:
+    #     - path:
+    #         type: PathPrefix
+    #         value: /
+    #   backendRefs:
+    #     - name: ""      # defaults to fullname
+    #       port: 15672   # defaults to managementPort
+  annotations: {}
+  labels: {}
+  ## HTTP→HTTPS redirect companion route
+  httpRedirect:
+    enabled: false
+    parentRefs: []
+    hostnames: []
+    annotations: {}
+    labels: {}
+    scheme: https
+    statusCode: 301
+    port: ""
+    path: {}
+
+## @section PodDisruptionBudget parameters
+## Recommended for production deployments.
+## Prevents Kubernetes from evicting too many RabbitMQ pods simultaneously
+## during node drains or cluster upgrades, which could cause data loss
+## or quorum queue unavailability.
+pdb:
+  enabled: true
+  minAvailable: ""
+  maxUnavailable: 1
+
+## @section NetworkPolicy parameters
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+  allowExternalDNS: true
+
+## @section ServiceMonitor parameters (Prometheus Operator)
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  port: prometheus
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: ""
+  labels: {}
+  annotations: {}
+  relabelings: []
+  metricRelabelings: []
+  honorLabels: false
+
+## @section Metrics
+## RabbitMQ has built-in Prometheus metrics via the rabbitmq_prometheus plugin.
+## No sidecar exporter is needed; metrics are exposed on the prometheusPort.
+metrics:
+  enabled: false
+
+## @section PrometheusRule (alerting rules)
+prometheusRule:
+  enabled: false
+  namespace: ""
+  labels: {}
+  rules: []
+  # - alert: RabbitMQDown
+  #   expr: rabbitmq_up == 0
+  #   for: 2m
+  #   labels:
+  #     severity: critical
+  #   annotations:
+  #     summary: RabbitMQ instance is down
+  # - alert: RabbitMQHighMemoryUsage
+  #   expr: rabbitmq_process_resident_memory_bytes / rabbitmq_resident_memory_limit_bytes > 0.9
+  #   for: 5m
+  #   labels:
+  #     severity: warning
+  #   annotations:
+  #     summary: RabbitMQ memory usage is above 90%
+  # - alert: RabbitMQUnackedMessages
+  #   expr: rabbitmq_queue_messages_unacked > 1000
+  #   for: 5m
+  #   labels:
+  #     severity: warning
+  #   annotations:
+  #     summary: RabbitMQ has high unacknowledged message count
+
+## @section Persistence parameters
+persistence:
+  enabled: true
+  resourcePolicy: ""
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 8Gi
+  existingClaim: ""
+  subPath: ""
+  annotations: {}
+
+## @section PVC retention policy (StatefulSet)
+persistentVolumeClaimRetentionPolicy:
+  enabled: false
+  whenDeleted: Retain
+  whenScaled: Retain
+
+## @section Test image
+testImage:
+  registry: docker.io
+  repository: busybox
+  tag: "latest"
+  pullPolicy: Always

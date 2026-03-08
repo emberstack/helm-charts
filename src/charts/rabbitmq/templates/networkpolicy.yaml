@@ -1,0 +1,95 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "rabbitmq.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
+  {{- if .Values.networkPolicy.policyTypes }}
+  policyTypes:
+    {{- toYaml .Values.networkPolicy.policyTypes | nindent 4 }}
+  {{- end }}
+  ingress:
+    {{- /* Allow intra-cluster RabbitMQ traffic (dist + epmd) */}}
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "rabbitmq.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 14 }}
+      ports:
+        - port: amqp
+          protocol: TCP
+        - port: dist
+          protocol: TCP
+        - port: epmd
+          protocol: TCP
+        - port: management
+          protocol: TCP
+    {{- /* Allow client traffic (AMQP + management) from any pod in the namespace */}}
+    - from:
+        - podSelector: {}
+      ports:
+        - port: amqp
+          protocol: TCP
+        - port: management
+          protocol: TCP
+        {{- if .Values.tls.enabled }}
+        - port: amqp-tls
+          protocol: TCP
+        - port: management-tls
+          protocol: TCP
+        {{- end }}
+    {{- if .Values.metrics.enabled }}
+    - ports:
+        - port: prometheus
+          protocol: TCP
+    {{- end }}
+    {{- with .Values.networkPolicy.ingress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if has "Egress" .Values.networkPolicy.policyTypes }}
+  egress:
+    {{- /* Allow intra-cluster RabbitMQ traffic */}}
+    - to:
+        - podSelector:
+            matchLabels:
+              {{- include "rabbitmq.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 14 }}
+      ports:
+        - port: amqp
+          protocol: TCP
+        - port: dist
+          protocol: TCP
+        - port: epmd
+          protocol: TCP
+        - port: management
+          protocol: TCP
+    {{- if .Values.networkPolicy.allowExternalDNS }}
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    {{- end }}
+    {{- if .Values.clustering.enabled }}
+    {{- /* Allow peer discovery to reach Kubernetes API */}}
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 443
+          protocol: TCP
+    {{- end }}
+    {{- with .Values.networkPolicy.egress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

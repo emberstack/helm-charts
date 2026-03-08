@@ -1,0 +1,115 @@
+{{- if .Values.rbac.create }}
+{{- if .Values.clustering.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}-peer-discovery
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}-peer-discovery
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "rabbitmq.fullname" . }}-peer-discovery
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "rabbitmq.serviceAccountName" . }}
+    namespace: {{ include "rabbitmq.namespace" . }}
+{{- end }}
+{{- if .Values.rbac.clusterRole.rules }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.clusterRole.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "rabbitmq.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "rabbitmq.serviceAccountName" . }}
+    namespace: {{ include "rabbitmq.namespace" . }}
+{{- end }}
+{{- if .Values.rbac.role.rules }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.role.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "rabbitmq.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "rabbitmq.serviceAccountName" . }}
+    namespace: {{ include "rabbitmq.namespace" . }}
+{{- end }}
+{{- end }}

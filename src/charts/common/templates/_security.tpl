@@ -26,7 +26,7 @@ Usage:
 
 {{/*
 Render pod security context. On OpenShift, omits fsGroup, runAsUser, runAsGroup, empty seLinuxOptions.
-Always strips the "enabled" key (Bitnami toggle convention).
+Always strips the "enabled" key (used as a toggle, not a Kubernetes field).
 If enabled is explicitly false, returns empty (no security context rendered).
 Usage:
   {{ include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}

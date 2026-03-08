@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}-test-connection
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.testImage) "context" $) | nindent 2 }}
+  restartPolicy: Never
+  {{- $podSecurityContext := include "common.security.renderPodSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) }}
+  {{- if $podSecurityContext }}
+  securityContext:
+    {{- $podSecurityContext | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: rabbitmq-test
+      image: {{ include "rabbitmq.testImage" . }}
+      imagePullPolicy: {{ .Values.testImage.pullPolicy }}
+      securityContext:
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      env:
+        - name: RABBITMQ_USERNAME
+          value: {{ .Values.auth.username | quote }}
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "rabbitmq.secretName" . }}
+              key: {{ include "rabbitmq.secretPasswordKey" . }}
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+
+          SVC="{{ include "rabbitmq.fullname" . }}"
+          PORT="{{ include "rabbitmq.managementPort" . }}"
+          {{- if .Values.tls.enabled }}
+          SCHEME="https"
+          TLS_FLAGS="--no-check-certificate"
+          {{- else }}
+          SCHEME="http"
+          TLS_FLAGS=""
+          {{- end }}
+          AUTH_HEADER=$(printf '%s:%s' "${RABBITMQ_USERNAME}" "${RABBITMQ_PASSWORD}" | base64)
+
+          echo "Testing RabbitMQ management API health endpoint..."
+          RESULT=$(wget -qO- ${TLS_FLAGS} --header "Authorization: Basic ${AUTH_HEADER}" \
+            "${SCHEME}://${SVC}:${PORT}/api/health/checks/alarms" 2>&1) || {
+            echo "FAIL: Could not connect to RabbitMQ management API"
+            exit 1
+          }
+
+          echo "Response: ${RESULT}"
+
+          echo "Testing RabbitMQ node health..."
+          RESULT=$(wget -qO- ${TLS_FLAGS} --header "Authorization: Basic ${AUTH_HEADER}" \
+            "${SCHEME}://${SVC}:${PORT}/api/health/checks/node-is-quorum-critical" 2>&1) || {
+            echo "FAIL: Node health check failed"
+            exit 1
+          }
+
+          echo "Response: ${RESULT}"
+          echo "All tests passed!"

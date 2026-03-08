@@ -1,11 +1,11 @@
-{{- if and .Values.autoscaling.enabled (eq .Values.architecture "replication") }}
+{{- if .Values.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "redis.fullname" . }}
-  namespace: {{ include "redis.namespace" . }}
+  name: {{ include "rabbitmq.fullname" . }}
+  namespace: {{ include "rabbitmq.namespace" . }}
   labels:
-    {{- include "redis.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
   {{- with .Values.commonAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -14,7 +14,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: StatefulSet
-    name: {{ include "redis.fullname" . }}
+    name: {{ include "rabbitmq.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   {{- if or .Values.autoscaling.targetCPU .Values.autoscaling.targetMemory .Values.autoscaling.customMetrics }}

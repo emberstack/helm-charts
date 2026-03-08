@@ -1,0 +1,30 @@
+{{- if eq (int .Values.replicaCount) 1 }}
+Mode: Standalone (single node)
+{{- else }}
+Mode: Clustered ({{ .Values.replicaCount }} nodes)
+{{- end }}
+
+To connect to RabbitMQ:
+
+  1. Get the RabbitMQ password:
+
+     export RABBITMQ_PASSWORD=$(kubectl get secret {{ include "rabbitmq.secretName" . }} -n {{ include "rabbitmq.namespace" . }} -o jsonpath="{.data.{{ include "rabbitmq.secretPasswordKey" . }}}" | base64 -d)
+
+  2. Access the Management UI:
+
+     kubectl port-forward svc/{{ include "rabbitmq.fullname" . }} 15672:{{ include "rabbitmq.managementPort" . }} -n {{ include "rabbitmq.namespace" . }}
+
+     Then open {{ if .Values.tls.enabled }}https{{ else }}http{{ end }}://localhost:15672
+     Login with user "{{ .Values.auth.username }}" and the password from step 1.
+
+  3. AMQP connection string:
+
+     {{ if .Values.tls.enabled }}amqps{{ else }}amqp{{ end }}://{{ .Values.auth.username }}:$RABBITMQ_PASSWORD@{{ include "rabbitmq.fullname" . }}.{{ include "rabbitmq.namespace" . }}.svc.{{ .Values.clusterDomain }}:{{ include "rabbitmq.amqpPort" . }}
+
+Service endpoints:
+  - AMQP: {{ include "rabbitmq.fullname" . }}.{{ include "rabbitmq.namespace" . }}.svc.{{ .Values.clusterDomain }}:{{ include "rabbitmq.amqpPort" . }}
+  - Management: {{ include "rabbitmq.fullname" . }}.{{ include "rabbitmq.namespace" . }}.svc.{{ .Values.clusterDomain }}:{{ include "rabbitmq.managementPort" . }}
+  - Headless: {{ include "rabbitmq.headlessSvcFqdn" . }}:{{ include "rabbitmq.amqpPort" . }}
+{{- if .Values.metrics.enabled }}
+  - Metrics: port 15692 (prometheus)
+{{- end }}

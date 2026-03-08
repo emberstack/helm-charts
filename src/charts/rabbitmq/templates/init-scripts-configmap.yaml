@@ -1,0 +1,18 @@
+{{- if .Values.initScripts }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-init-scripts" (include "rabbitmq.fullname" .) }}
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  {{- range $key, $value := .Values.initScripts }}
+  {{ $key }}: |
+    {{- $value | nindent 4 }}
+  {{- end }}
+{{- end }}

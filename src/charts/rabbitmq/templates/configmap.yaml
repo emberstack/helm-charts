@@ -1,0 +1,20 @@
+{{- if and .Values.config.content (not .Values.config.existingConfigMap) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rabbitmq.configMapName" . }}
+  namespace: {{ include "rabbitmq.namespace" . }}
+  labels:
+    {{- include "rabbitmq.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  10-default.conf: |
+    {{- .Values.config.content | nindent 4 }}
+  {{- if .Values.extraConfig }}
+  90-extra.conf: |
+    {{- .Values.extraConfig | nindent 4 }}
+  {{- end }}
+{{- end }}
