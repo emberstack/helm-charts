@@ -275,6 +275,7 @@
         "parentRefs": { "type": "array" },
         "hostnames": { "type": "array", "items": { "type": "string" } },
         "rules": { "type": "array" },
+        "extraFilters": { "type": "array" },
         "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
         "labels": { "type": "object", "additionalProperties": { "type": "string" } },
         "httpRedirect": {

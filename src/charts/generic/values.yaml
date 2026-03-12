@@ -274,6 +274,12 @@ httpRoute:
   #         set:
   #           - name: X-Forwarded-Proto
   #             value: https
+  extraFilters: []
+  # - type: ExtensionRef
+  #   extensionRef:
+  #     group: traefik.io
+  #     kind: Middleware
+  #     name: my-middleware
   annotations: {}
   labels: {}
   ## HTTP→HTTPS redirect companion route
