@@ -190,7 +190,7 @@ Default probes can be overridden with `custom*Probe` or disabled entirely with `
 | `dnsConfig` | DNS configuration | `{}` |
 | `hostNetwork` | Use host network | `false` |
 | `initContainers` | Init containers | `[]` |
-| `sidecars` | Sidecar containers | `[]` |
+| `extraContainers` | Extra containers | `[]` |
 
 ## Service Account
 

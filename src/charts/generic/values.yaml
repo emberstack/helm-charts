@@ -188,7 +188,7 @@ dnsConfig: {}
 hostNetwork: false
 
 initContainers: []
-sidecars: []
+extraContainers: []
 
 ## @section Service account
 serviceAccount:

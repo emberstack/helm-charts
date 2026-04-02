@@ -206,8 +206,8 @@ spec:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
             {{- end }}
           {{- end }}
-        {{- if .Values.sidecars }}
-        {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
+        {{- if .Values.extraContainers }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.extraContainers "context" $) | nindent 8 }}
         {{- end }}
       {{- if or .Values.persistence.enabled .Values.extraVolumes }}
       volumes:

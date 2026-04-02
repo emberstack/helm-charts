@@ -168,8 +168,8 @@ spec:
                 {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 16 }}
                 {{- end }}
               {{- end }}
-            {{- if .Values.sidecars }}
-            {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 12 }}
+            {{- if .Values.extraContainers }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraContainers "context" $) | nindent 12 }}
             {{- end }}
           {{- if or .Values.persistence.enabled .Values.extraVolumes }}
           volumes:

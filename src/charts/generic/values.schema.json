@@ -179,7 +179,7 @@
     "dnsConfig": { "type": "object", "additionalProperties": true },
     "hostNetwork": { "type": "boolean" },
     "initContainers": { "type": "array" },
-    "sidecars": { "type": "array" },
+    "extraContainers": { "type": "array" },
     "serviceAccount": {
       "type": "object",
       "additionalProperties": false,
