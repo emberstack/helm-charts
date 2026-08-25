@@ -1,18 +1,31 @@
+## NGINX Gateway Fabric extensions
+## Targets gateway.nginx.org as shipped with NGINX Gateway Fabric v2.6.7
+## https://docs.nginx.com/nginx-gateway-fabric/
+
 nameOverride: ""
 fullnameOverride: ""
 namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
+## Every section is a LIST. Each entry needs its own `name`; the resource is named
+## "<release>-<chart>-<name>" unless you set `fullnameOverride`. `namespace` on an
+## entry overrides the release namespace.
+##
+## targetRef / targetRefs entries are always {group, kind, name} — all three are
+## required by the CRDs, and the chart supplies sensible group/kind defaults.
+
+## @section ClientSettingsPolicy parameters
 clientSettingsPolicies: []
-# - name: my-client-settings
+# - name: my-client-settings      # required
 #   enabled: true
 #   fullnameOverride: ""
+#   namespace: ""
 #   labels: {}
 #   annotations: {}
-#   targetRef:
+#   targetRef:                    # required
 #     group: gateway.networking.k8s.io
-#     kind: Gateway
+#     kind: Gateway               # Gateway | HTTPRoute | GRPCRoute
 #     name: my-gateway
 #   body:
 #     maxSize: 10m
@@ -20,74 +33,71 @@ clientSettingsPolicies: []
 #   keepAlive:
 #     requests: 100
 #     time: 1h
+#     minTimeout: 30s
 #     timeout:
 #       server: 75s
 #       header: 60s
 
+## @section ObservabilityPolicy parameters
 observabilityPolicies: []
-# - name: my-observability
+# - name: my-observability        # required
 #   enabled: true
-#   fullnameOverride: ""
-#   labels: {}
-#   annotations: {}
-#   targetRefs:
+#   targetRefs:                   # required
 #     - group: gateway.networking.k8s.io
 #       kind: HTTPRoute
 #       name: my-route
 #   tracing:
-#     strategy: ratio
+#     strategy: ratio             # required: ratio | parent
 #     ratio: 10
-#     context: extract
+#     context: extract            # extract | inject | propagate | ignore
 #     spanName: my-span
 #     spanAttributes:
 #       - key: env
 #         value: production
 
+## @section RateLimitPolicy parameters
 rateLimitPolicies: []
-# - name: my-rate-limit
+# - name: my-rate-limit           # required
 #   enabled: true
-#   fullnameOverride: ""
-#   labels: {}
-#   annotations: {}
-#   targetRefs:
+#   targetRefs:                   # required
 #     - group: gateway.networking.k8s.io
 #       kind: HTTPRoute
 #       name: my-route
 #   rateLimit:
-#     logLevel: info
+#     logLevel: info              # info | notice | warn | error
 #     rejectCode: 429
+#     dryRun: false
 #     local:
 #       rules:
-#         - rate: 10r/s
+#         - key: $binary_remote_addr   # required
+#           rate: 10r/s                  # required
 #           burst: 20
 #           delay: 5
+#           noDelay: false
 #           zoneSize: 10m
 
+## @section UpstreamSettingsPolicy parameters
 upstreamSettingsPolicies: []
-# - name: my-upstream-settings
+# - name: my-upstream-settings    # required
 #   enabled: true
-#   fullnameOverride: ""
-#   labels: {}
-#   annotations: {}
-#   targetRefs:
+#   targetRefs:                   # required
 #     - group: ""
 #       kind: Service
 #       name: my-service
 #   zoneSize: 512k
-#   loadBalancingMethod: least_conn
+#   loadBalancingMethod: least_conn   # round_robin | least_conn | ip_hash | hash | random ...
+#   hashMethodKey: ""                 # required when loadBalancingMethod is hash
 #   keepAlive:
 #     connections: 32
 #     requests: 100
 #     time: 1h
 #     timeout: 60s
 
+## @section ProxySettingsPolicy parameters
 proxySettingsPolicies: []
-# - name: my-proxy-settings
+# - name: my-proxy-settings       # required
 #   enabled: true
-#   fullnameOverride: ""
-#   labels: {}
-#   annotations: {}
-#   targetRefs:
+#   targetRefs:                   # required
 #     - group: gateway.networking.k8s.io
 #       kind: HTTPRoute
 #       name: my-route
@@ -95,30 +105,98 @@ proxySettingsPolicies: []
 #     disable: false
 #     bufferSize: 4k
 #     buffers:
-#       number: 8
-#       size: 4k
+#       number: 8                 # required when buffers is set
+#       size: 4k                  # required when buffers is set
 #     busyBuffersSize: 8k
+#   timeout:
+#     connect: 60s
+#     read: 60s
+#     send: 60s
 
+## @section SnippetsPolicy parameters
 snippetsPolicies: []
-# - name: my-snippets-policy
+# - name: my-snippets-policy      # required
 #   enabled: true
-#   fullnameOverride: ""
-#   labels: {}
-#   annotations: {}
-#   targetRefs:
+#   targetRefs:                   # required
 #     - group: gateway.networking.k8s.io
 #       kind: HTTPRoute
 #       name: my-route
 #   snippets:
+#     - context: http.server.location   # main | http | http.server | http.server.location
+#       value: "proxy_set_header X-Custom-Header value;"
+
+## @section SnippetsFilter parameters
+snippetsFilters: []
+# - name: my-snippets-filter      # required
+#   enabled: true
+#   snippets:                     # required
 #     - context: http.server.location
 #       value: "proxy_set_header X-Custom-Header value;"
 
-snippetsFilters: []
-# - name: my-snippets-filter
+## @section NginxProxy parameters
+## Data-plane configuration, referenced from a GatewayClass or Gateway parametersRef.
+nginxProxies: []
+# - name: my-proxy-config         # required
 #   enabled: true
-#   fullnameOverride: ""
-#   labels: {}
-#   annotations: {}
-#   snippets:
-#     - context: http.server.location
-#       value: "proxy_set_header X-Custom-Header value;"
+#   ipFamily: dual                # dual | ipv4 | ipv6
+#   serverTokens: "off"          # MUST be quoted: on | off | build (bare off/on are YAML booleans)
+#   workerConnections: 1024      # 1-65535
+#   disableHTTP2: false
+#   disableSNIHostValidation: false
+#   logging: {}
+#   metrics: {}
+#   telemetry: {}
+#   dnsResolver: {}
+#   rewriteClientIP: {}
+#   kubernetes: {}
+#   nginxPlus: {}
+#   waf: {}
+
+## @section AuthenticationFilter parameters
+## Referenced from an HTTPRoute filter via extensionRef.
+authenticationFilters: []
+# - name: my-auth                 # required
+#   enabled: true
+#   type: Basic                   # required: Basic | OIDC | JWT
+#   basic:
+#     realm: "Restricted"         # required for Basic
+#     secretRef:
+#       name: htpasswd-secret
+#   # jwt:
+#   #   realm: "API"
+#   #   source: Remote            # File | Remote
+#   #   remote:
+#   #     uri: https://idp.example.com/.well-known/jwks.json
+#   # oidc:
+#   #   issuer: https://idp.example.com
+#   #   clientID: my-client
+#   #   clientSecretRef:
+#   #     name: oidc-secret
+
+## @section WAFPolicy parameters
+## Requires NGINX Plus with App Protect WAF.
+wafPolicies: []
+# - name: my-waf                  # required
+#   enabled: true
+#   type: HTTP                    # required: HTTP | NIM | N1C
+#   targetRefs:                   # required
+#     - group: gateway.networking.k8s.io
+#       kind: Gateway
+#       name: my-gateway
+#   policySource:                 # required
+#     httpSource:
+#       url: https://example.com/policies/waf-policy.tgz
+#     polling:
+#       enabled: true
+#       interval: 5m
+#     retryAttempts: 3
+#   securityLogs: []
+
+## @section NginxGateway parameters
+## Control-plane configuration. Normally created by the NGINX Gateway Fabric chart
+## itself — set this only if you manage that object yourself.
+nginxGateways: []
+# - name: my-nginx-gateway        # required
+#   enabled: true
+#   logging:
+#     level: info                 # info | debug | error

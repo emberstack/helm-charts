@@ -6,18 +6,18 @@
 apiVersion: alb.networking.azure.io/v1
 kind: HealthCheckPolicy
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.namespace" $ }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   targetRef:
     group: {{ $item.targetRef.group | default "" | quote }}
-    kind: {{ $item.targetRef.kind | default "Service" }}
-    name: {{ $item.targetRef.name }}
+    kind: {{ $item.targetRef.kind | default "Service" | quote }}
+    name: {{ $item.targetRef.name | quote }}
     {{- if $item.targetRef.namespace }}
-    namespace: {{ $item.targetRef.namespace }}
+    namespace: {{ $item.targetRef.namespace | quote }}
     {{- end }}
     {{- if $item.targetRef.sectionNames }}
     sectionNames:
@@ -26,6 +26,10 @@ spec:
   {{- if $item.default }}
   default:
     {{- toYaml $item.default | nindent 4 }}
+  {{- end }}
+  {{- if $item.override }}
+  override:
+    {{- toYaml $item.override | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

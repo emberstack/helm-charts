@@ -8,12 +8,264 @@
       "description": "Global values shared across parent and subcharts",
       "additionalProperties": true
     },
-    "nameOverride": { "type": "string" },
-    "fullnameOverride": { "type": "string" },
-    "namespaceOverride": { "type": "string" },
-    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
-    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
-    "applications": { "type": "array", "description": "List of Argo CD Application resources" },
-    "appProjects": { "type": "array", "description": "List of Argo CD AppProject resources" }
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "namespaceOverride": {
+      "type": "string"
+    },
+    "commonLabels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "appProjects": {
+      "type": "array",
+      "description": "List of Argo CD AppProject resources",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "sourceRepos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sourceNamespaces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "destinations": {
+            "type": "array"
+          },
+          "destinationServiceAccounts": {
+            "type": "array"
+          },
+          "permitOnlyProjectScopedClusters": {
+            "type": "boolean"
+          },
+          "clusterResourceWhitelist": {
+            "type": "array"
+          },
+          "clusterResourceBlacklist": {
+            "type": "array"
+          },
+          "namespaceResourceWhitelist": {
+            "type": "array"
+          },
+          "namespaceResourceBlacklist": {
+            "type": "array"
+          },
+          "orphanedResources": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "syncWindows": {
+            "type": "array"
+          },
+          "roles": {
+            "type": "array"
+          },
+          "signatureKeys": {
+            "type": "array"
+          },
+          "sourceIntegrity": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "applications": {
+      "type": "array",
+      "description": "List of Argo CD Application resources",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "finalizers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "project": {
+            "type": [
+              "string",
+              "integer"
+            ],
+            "description": "Quoted when rendered; union excludes boolean so a bare off/on is still caught"
+          },
+          "source": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "sources": {
+            "type": "array"
+          },
+          "destination": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "sourceHydrator": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "ignoreDifferences": {
+            "type": "array"
+          },
+          "info": {
+            "type": "array"
+          },
+          "revisionHistoryLimit": {
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Coerced with int64 when rendered"
+          },
+          "syncPolicy": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "operation": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "applicationSets": {
+      "type": "array",
+      "description": "List of Argo CD ApplicationSet resources",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "generators": {
+            "type": "array"
+          },
+          "template": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "goTemplate": {
+            "type": "boolean"
+          },
+          "goTemplateOptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "syncPolicy": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "strategy": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "preservedFields": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "ignoreApplicationDifferences": {
+            "type": "array"
+          },
+          "applyNestedSelectors": {
+            "type": "boolean"
+          },
+          "templatePatch": {
+            "type": "string"
+          }
+        }
+      }
+    }
   }
 }

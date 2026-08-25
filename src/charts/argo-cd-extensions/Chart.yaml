@@ -12,6 +12,8 @@ keywords:
 - extensions
 - application
 - appProject
+- applicationSet
+- gitops
 home: https://github.com/emberstack/helm-charts
 sources:
 - https://github.com/emberstack/helm-charts

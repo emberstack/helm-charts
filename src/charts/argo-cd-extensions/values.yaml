@@ -1,8 +1,142 @@
+## Argo CD extensions
+## Targets argoproj.io/v1alpha1 as shipped with Argo CD v3.5.1
+## https://argo-cd.readthedocs.io/
+
 nameOverride: ""
 fullnameOverride: ""
 namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
-applications: []
+## Every section is a LIST. Each entry needs its own `name`; the resource is named
+## "<release>-<chart>-<name>" unless you set `fullnameOverride`. `namespace` on an
+## entry overrides the release namespace — for Argo CD that is usually the namespace
+## the Argo CD instance watches (commonly `argocd`).
+
+## @section AppProject parameters
 appProjects: []
+# - name: my-project              # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   description: My project
+#   sourceRepos:
+#     - "https://github.com/my-org/*"
+#   sourceNamespaces: []
+#   destinations:
+#     - server: https://kubernetes.default.svc
+#       namespace: "my-app-*"
+#   destinationServiceAccounts:            # impersonation (Argo CD >= 2.13)
+#     - server: https://kubernetes.default.svc
+#       namespace: my-app
+#       defaultServiceAccount: my-deployer
+#   permitOnlyProjectScopedClusters: false
+#   clusterResourceWhitelist:
+#     - group: "*"
+#       kind: "*"
+#   clusterResourceBlacklist: []
+#   namespaceResourceWhitelist: []
+#   namespaceResourceBlacklist:
+#     - group: ""
+#       kind: ResourceQuota
+#   orphanedResources:
+#     warn: true
+#   syncWindows:
+#     - kind: allow
+#       schedule: "0 9 * * MON-FRI"
+#       duration: 8h
+#       applications: ["*"]
+#   roles:
+#     - name: read-only
+#       policies:
+#         - "p, proj:my-project:read-only, applications, get, my-project/*, allow"
+#   signatureKeys: []
+#   sourceIntegrity:                       # GPG commit verification (replaces signatureKeys)
+#     git:
+#       policies:
+#         - repos:
+#             - url: "https://github.com/my-org/*"
+#           gpg:
+#             mode: head                 # none | head | strict
+#             keys:
+#               - ABCDEF0123456789
+
+## @section Application parameters
+## Exactly one of `source` or `sources` is required.
+applications: []
+# - name: my-app                  # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+#   project: default
+#   source:
+#     repoURL: https://github.com/my-org/my-repo
+#     path: manifests
+#     targetRevision: HEAD
+#   # sources: []                  # use instead of `source` for multi-source apps
+#   destination:
+#     server: https://kubernetes.default.svc   # or use `name:` for a named cluster
+#     namespace: my-app
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+#   ignoreDifferences: []
+#   info: []
+#   revisionHistoryLimit: 10
+#   ## Source hydrator (Argo CD >= 2.13); mutually exclusive with plain source in practice
+#   # sourceHydrator:
+#   #   drySource:
+#   #     repoURL: https://github.com/my-org/my-repo
+#   #     path: manifests
+#   #     targetRevision: main
+#   #   syncSource:
+#   #     path: manifests
+#   #     targetBranch: environments/dev
+#   #   hydrateTo:
+#   #     targetBranch: environments/dev-next
+#   ## One-off operation (e.g. trigger a sync)
+#   # operation: {}
+
+## @section ApplicationSet parameters
+applicationSets: []
+# - name: my-appset               # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   goTemplate: true
+#   goTemplateOptions:
+#     - missingkey=error
+#   generators:                    # required, at least one
+#     - list:
+#         elements:
+#           - cluster: dev
+#             url: https://kubernetes.default.svc
+#   template:                      # required
+#     metadata:
+#       name: "{{ .cluster }}-app"
+#     spec:
+#       project: default
+#       source:
+#         repoURL: https://github.com/my-org/my-repo
+#         path: manifests
+#         targetRevision: HEAD
+#       destination:
+#         server: "{{ .url }}"
+#         namespace: my-app
+#   syncPolicy: {}
+#   strategy: {}
+#   preservedFields: {}
+#   ignoreApplicationDifferences: []
+#   applyNestedSelectors: false
+#   templatePatch: ""

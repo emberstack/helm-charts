@@ -1,8 +1,126 @@
+## Core Kubernetes resource extensions
+## Verified against Kubernetes v1.36 (core/v1 and scheduling.k8s.io/v1)
+
 nameOverride: ""
 fullnameOverride: ""
 namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
+## Every section below is a LIST. Each entry needs its own `name`, and the emitted
+## resource is named "<release>-<chart>-<name>". Set `fullnameOverride` on an entry
+## to control the name exactly — you almost always want this for `namespaces` and
+## `priorityClasses`, whose names are meaningful cluster-wide.
+##
+## Values in `data` / `stringData` / `hard` / `finalizers` / `secrets` are rendered
+## as Helm templates, so "{{ .Release.Namespace }}" works inside them.
+
+## @section ConfigMap parameters
 configMaps: []
+# - name: app-config             # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""                # defaults to the release namespace
+#   labels: {}
+#   annotations: {}
+#   immutable: false
+#   data:
+#     LOG_LEVEL: info
+#     ENVIRONMENT: "{{ .Release.Namespace }}"
+#   binaryData: {}               # values must be base64-encoded
+
+## @section Secret parameters
 secrets: []
+# - name: app-secret             # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   type: Opaque                 # defaults to Opaque
+#   immutable: false
+#   stringData:                  # plain text; Kubernetes encodes it
+#     API_KEY: s3cr3t
+#   data: {}                     # values must be base64-encoded
+
+## @section ServiceAccount parameters
+serviceAccounts: []
+# - name: app                    # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   automountServiceAccountToken: false
+#   imagePullSecrets:
+#     - name: registry-credentials
+#   secrets:
+#     - name: app-token
+
+## @section Namespace parameters
+## Cluster-scoped. Use fullnameOverride to set the exact namespace name.
+namespaces: []
+# - name: team-a                 # required
+#   enabled: true
+#   fullnameOverride: team-a     # recommended: emit exactly "team-a"
+#   labels: {}
+#   annotations: {}
+#   finalizers: []
+
+## @section ResourceQuota parameters
+resourceQuotas: []
+# - name: team-a-quota           # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   hard:
+#     requests.cpu: "4"
+#     requests.memory: 8Gi
+#     limits.cpu: "8"
+#     limits.memory: 16Gi
+#     pods: "50"
+#   scopes: []                   # e.g. [NotTerminating]
+#   scopeSelector:
+#     matchExpressions:
+#       - scopeName: PriorityClass
+#         operator: In
+#         values: [high]
+
+## @section LimitRange parameters
+limitRanges: []
+# - name: defaults               # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   limits:                      # required
+#     - type: Container          # Container | Pod | PersistentVolumeClaim
+#       default:
+#         cpu: 500m
+#         memory: 512Mi
+#       defaultRequest:
+#         cpu: 100m
+#         memory: 128Mi
+#       max:
+#         cpu: "2"
+#         memory: 2Gi
+#       min:
+#         cpu: 10m
+#         memory: 32Mi
+#       maxLimitRequestRatio: {}
+
+## @section PriorityClass parameters
+## Cluster-scoped, scheduling.k8s.io/v1. Use fullnameOverride for an exact name.
+priorityClasses: []
+# - name: high                   # required
+#   enabled: true
+#   fullnameOverride: high-priority
+#   labels: {}
+#   annotations: {}
+#   value: 1000000               # required; may be negative
+#   globalDefault: false
+#   description: "Critical workloads"
+#   preemptionPolicy: PreemptLowerPriority   # Never | PreemptLowerPriority

@@ -1,0 +1,19 @@
+{{- range .Values.namespaces }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $fullName | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+{{- with $item.finalizers }}
+spec:
+  finalizers:
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}

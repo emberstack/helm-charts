@@ -6,39 +6,39 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.namespace" $ }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
-  gatewayClassName: {{ $item.gatewayClassName }}
+  gatewayClassName: {{ $item.gatewayClassName | quote }}
   {{- if $item.listeners }}
   listeners:
     {{- range $item.listeners }}
-    - name: {{ .name }}
+    - name: {{ .name | quote }}
       port: {{ .port }}
-      protocol: {{ .protocol }}
+      protocol: {{ .protocol | quote }}
       {{- if .hostname }}
       hostname: {{ .hostname | quote }}
       {{- end }}
       {{- if .tls }}
       tls:
         {{- if .tls.mode }}
-        mode: {{ .tls.mode }}
+        mode: {{ .tls.mode | quote }}
         {{- end }}
         {{- if .tls.certificateRefs }}
         certificateRefs:
           {{- range .tls.certificateRefs }}
-          - name: {{ .name }}
+          - name: {{ .name | quote }}
             {{- if .namespace }}
-            namespace: {{ .namespace }}
+            namespace: {{ .namespace | quote }}
             {{- end }}
             {{- if hasKey . "group" }}
             group: {{ .group | quote }}
             {{- end }}
             {{- if .kind }}
-            kind: {{ .kind }}
+            kind: {{ .kind | quote }}
             {{- end }}
           {{- end }}
         {{- end }}
@@ -60,6 +60,14 @@ spec:
   {{- if $item.infrastructure }}
   infrastructure:
     {{- toYaml $item.infrastructure | nindent 4 }}
+  {{- end }}
+  {{- with $item.allowedListeners }}
+  allowedListeners:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

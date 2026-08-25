@@ -10,6 +10,7 @@ keywords:
 - external-dns
 - dns
 - DNSEndpoint
+- DNSRecord
 home: https://github.com/emberstack/helm-charts
 sources:
 - https://github.com/emberstack/helm-charts

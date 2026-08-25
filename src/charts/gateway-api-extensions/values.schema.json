@@ -8,26 +8,146 @@
       "description": "Global values shared across parent and subcharts",
       "additionalProperties": true
     },
-    "nameOverride": { "type": "string" },
-    "fullnameOverride": { "type": "string" },
-    "namespaceOverride": { "type": "string" },
-    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
-    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "namespaceOverride": {
+      "type": "string"
+    },
+    "commonLabels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "gatewayClasses": {
+      "type": "object",
+      "description": "Map of GatewayClass resources keyed by name (cluster-scoped)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "controllerName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parametersRef": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
     "gateways": {
       "type": "object",
       "description": "Map of Gateway resources keyed by name",
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "name": { "type": "string" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "gatewayClassName": { "type": "string" },
-          "listeners": { "type": "array" },
-          "addresses": { "type": "array" },
-          "infrastructure": { "type": "object", "additionalProperties": true }
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "gatewayClassName": {
+            "type": "string"
+          },
+          "listeners": {
+            "type": "array"
+          },
+          "addresses": {
+            "type": "array"
+          },
+          "infrastructure": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "allowedListeners": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "tls": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "listenerSets": {
+      "type": "object",
+      "description": "Map of ListenerSet resources keyed by name (Gateway API >= v1.5)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "parentRef": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "listeners": {
+            "type": "array"
+          }
         }
       }
     },
@@ -37,14 +157,221 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "name": { "type": "string" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "parentRefs": { "type": "array" },
-          "hostnames": { "type": "array", "items": { "type": "string" } },
-          "rules": { "type": "array" }
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "parentRefs": {
+            "type": "array"
+          },
+          "hostnames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rules": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "grpcRoutes": {
+      "type": "object",
+      "description": "Map of GRPCRoute resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "parentRefs": {
+            "type": "array"
+          },
+          "hostnames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rules": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "tlsRoutes": {
+      "type": "object",
+      "description": "Map of TLSRoute resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "parentRefs": {
+            "type": "array"
+          },
+          "hostnames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rules": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "tcpRoutes": {
+      "type": "object",
+      "description": "Map of TCPRoute resources keyed by name (Gateway API >= v1.6 standard channel)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "parentRefs": {
+            "type": "array"
+          },
+          "rules": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "udpRoutes": {
+      "type": "object",
+      "description": "Map of UDPRoute resources keyed by name (Gateway API >= v1.6 standard channel)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "parentRefs": {
+            "type": "array"
+          },
+          "rules": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "backendTLSPolicies": {
+      "type": "object",
+      "description": "Map of BackendTLSPolicy resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array"
+          },
+          "validation": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       }
     },
@@ -54,11 +381,33 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "name": { "type": "string" },
-          "fullnameOverride": { "type": "string" },
-          "from": { "type": "array" },
-          "to": { "type": "array" }
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "from": {
+            "type": "array"
+          },
+          "to": {
+            "type": "array"
+          }
         }
       }
     }

@@ -1,0 +1,58 @@
+{{- if and .Values.appProjects (not (kindIs "slice" .Values.appProjects)) }}
+  {{- fail "appProjects must be a list (not a map). Use appProjects: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.applications (not (kindIs "slice" .Values.applications)) }}
+  {{- fail "applications must be a list (not a map). Use applications: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.applicationSets (not (kindIs "slice" .Values.applicationSets)) }}
+  {{- fail "applicationSets must be a list (not a map). Use applicationSets: [] with a name on each entry." }}
+{{- end }}
+
+{{/* List entries are addressed by their own name, so it is mandatory. */}}
+{{- range $k := (list "appProjects" "applications" "applicationSets") }}
+{{- range $i, $item := (index $.Values $k) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.name }}
+    {{- fail (printf "%s[%d]: name is required for list entries." $k $i) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/* Application: exactly one of source, sources or sourceHydrator. Argo CD resolves
+     sourceHydrator first (ApplicationSpec.GetSource), so all three are alternatives. */}}
+{{- range $i, $item := .Values.applications }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- $set := list }}
+  {{- range $k := (list "source" "sources" "sourceHydrator") }}
+    {{- if index $item $k }}{{- $set = append $set $k }}{{- end }}
+  {{- end }}
+  {{- if eq (len $set) 0 }}
+    {{- fail (printf "applications[%d] (%s): one of source, sources or sourceHydrator is required." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+  {{- if gt (len $set) 1 }}
+    {{- fail (printf "applications[%d] (%s): source, sources and sourceHydrator are mutually exclusive, found: %s" $i (default "<unnamed>" $item.name) (join ", " $set)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/* ApplicationSet: generators and template are both required by the CRD. */}}
+{{- range $i, $item := .Values.applicationSets }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.generators }}
+    {{- fail (printf "applicationSets[%d] (%s): generators is required and must contain at least one entry." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+  {{- if not $item.template }}
+    {{- fail (printf "applicationSets[%d] (%s): template is required by the ApplicationSet CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/* Application destination: server and name are mutually exclusive in Argo CD. */}}
+{{- range $i, $item := .Values.applications }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if and $item.destination $item.destination.server $item.destination.name }}
+    {{- fail (printf "applications[%d] (%s): destination.server and destination.name are mutually exclusive." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}

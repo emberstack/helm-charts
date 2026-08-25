@@ -1,0 +1,24 @@
+{{- range .Values.priorityClasses }}
+{{- $item := . -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: {{ $fullName | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+value: {{ $item.value | int64 }}
+{{- if hasKey $item "globalDefault" }}
+globalDefault: {{ $item.globalDefault }}
+{{- end }}
+{{- with $item.description }}
+description: {{ . | quote }}
+{{- end }}
+{{- with $item.preemptionPolicy }}
+preemptionPolicy: {{ . | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

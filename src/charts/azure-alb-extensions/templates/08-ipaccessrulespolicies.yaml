@@ -1,0 +1,29 @@
+{{- range $key, $item := .Values.ipAccessRulesPolicies }}
+{{- $item := merge (dict "name" $key) $item -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: alb.networking.azure.io/v1
+kind: IPAccessRulesPolicy
+metadata:
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  targetRefs:
+    {{- range $item.targetRefs }}
+    - group: {{ .group | default "gateway.networking.k8s.io" | quote }}
+      kind: {{ .kind | default "Gateway" | quote }}
+      name: {{ .name | quote }}
+      {{- if .namespace }}
+      namespace: {{ .namespace | quote }}
+      {{- end }}
+    {{- end }}
+  {{- with (default $item.ipaccessrules $item.ipAccessRules) }}
+  ipaccessrules:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

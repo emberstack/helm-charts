@@ -1,0 +1,22 @@
+{{- range $key, $item := .Values.applicationLoadBalancers }}
+{{- $item := merge (dict "name" $key) $item -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: alb.networking.azure.io/v1
+kind: ApplicationLoadBalancer
+metadata:
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+{{- if $item.associations }}
+spec:
+  associations:
+    {{- toYaml $item.associations | nindent 4 }}
+{{- else }}
+spec: {}
+{{- end }}
+{{- end }}
+{{- end }}

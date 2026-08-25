@@ -1,67 +1,59 @@
-{{- range .Values.applications }}
-{{- $item := . -}}
+{{- range $i, $item := .Values.applications }}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
-  {{- if $item.finalizers }}
+  {{- with $item.finalizers }}
   finalizers:
-    {{- toYaml $item.finalizers | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  project: {{ $item.project | default "default" }}
-  {{- if $item.source }}
+  project: {{ $item.project | default "default" | quote }}
+  {{- with $item.source }}
   source:
-    {{- toYaml $item.source | nindent 4 }}
-  {{- else if $item.sources }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.sources }}
   sources:
-    {{- toYaml $item.sources | nindent 4 }}
-  {{- else }}
-  {{- fail "Either source or sources is required for Application" }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   destination:
-    {{- if $item.destination }}
-    {{- if $item.destination.server }}
-    server: {{ $item.destination.server }}
-    {{- else if $item.destination.name }}
-    name: {{ $item.destination.name }}
+    {{- $dest := default dict $item.destination }}
+    {{- if $dest.name }}
+    name: {{ $dest.name | quote }}
     {{- else }}
-    server: https://kubernetes.default.svc
+    server: {{ $dest.server | default "https://kubernetes.default.svc" | quote }}
     {{- end }}
-    {{- if $item.destination.namespace }}
-    namespace: {{ $item.destination.namespace }}
-    {{- else }}
-    namespace: {{ $.Release.Namespace }}
-    {{- end }}
-    {{- else }}
-    server: https://kubernetes.default.svc
-    namespace: {{ $.Release.Namespace }}
-    {{- end }}
-  {{- if $item.ignoreDifferences }}
+    namespace: {{ $dest.namespace | default $.Release.Namespace | quote }}
+  {{- with $item.sourceHydrator }}
+  sourceHydrator:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.ignoreDifferences }}
   ignoreDifferences:
-    {{- toYaml $item.ignoreDifferences | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.info }}
+  {{- with $item.info }}
   info:
-    {{- toYaml $item.info | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ $item.revisionHistoryLimit }}
+  {{- if hasKey $item "revisionHistoryLimit" }}
+  revisionHistoryLimit: {{ $item.revisionHistoryLimit | int64 }}
   {{- end }}
-  {{- if $item.syncPolicy }}
+  {{- with $item.syncPolicy }}
   syncPolicy:
-    {{- toYaml $item.syncPolicy | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-{{- if $item.operation }}
+{{- with $item.operation }}
 operation:
-  {{- toYaml $item.operation | nindent 2 }}
+  {{- toYaml . | nindent 2 }}
 {{- end }}
 {{- end }}
 {{- end }}

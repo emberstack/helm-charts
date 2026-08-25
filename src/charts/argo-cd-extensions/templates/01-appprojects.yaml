@@ -1,63 +1,91 @@
-{{- range .Values.appProjects }}
-{{- $item := . -}}
+{{- range $i, $item := .Values.appProjects }}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+{{- $hasSpec := or $item.description (hasKey $item "permitOnlyProjectScopedClusters") }}
+{{- $hasSpec = or $hasSpec $item.clusterResourceWhitelist }}
+{{- $hasSpec = or $hasSpec $item.clusterResourceBlacklist }}
+{{- $hasSpec = or $hasSpec $item.namespaceResourceWhitelist }}
+{{- $hasSpec = or $hasSpec $item.namespaceResourceBlacklist }}
+{{- $hasSpec = or $hasSpec $item.destinations }}
+{{- $hasSpec = or $hasSpec $item.destinationServiceAccounts }}
+{{- $hasSpec = or $hasSpec $item.sourceRepos }}
+{{- $hasSpec = or $hasSpec $item.sourceNamespaces }}
+{{- $hasSpec = or $hasSpec $item.orphanedResources }}
+{{- $hasSpec = or $hasSpec $item.syncWindows }}
+{{- $hasSpec = or $hasSpec $item.roles }}
+{{- $hasSpec = or $hasSpec $item.signatureKeys }}
+{{- $hasSpec = or $hasSpec $item.sourceIntegrity }}
+{{- if $hasSpec }}
 spec:
-  {{- if $item.description }}
-  description: {{ $item.description }}
+  {{- with $item.description }}
+  description: {{ . | quote }}
   {{- end }}
-  {{- if $item.clusterResourceWhitelist }}
+  {{- if hasKey $item "permitOnlyProjectScopedClusters" }}
+  permitOnlyProjectScopedClusters: {{ $item.permitOnlyProjectScopedClusters }}
+  {{- end }}
+  {{- with $item.clusterResourceWhitelist }}
   clusterResourceWhitelist:
-    {{- toYaml $item.clusterResourceWhitelist | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.clusterResourceBlacklist }}
+  {{- with $item.clusterResourceBlacklist }}
   clusterResourceBlacklist:
-    {{- toYaml $item.clusterResourceBlacklist | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.namespaceResourceWhitelist }}
+  {{- with $item.namespaceResourceWhitelist }}
   namespaceResourceWhitelist:
-    {{- toYaml $item.namespaceResourceWhitelist | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.namespaceResourceBlacklist }}
+  {{- with $item.namespaceResourceBlacklist }}
   namespaceResourceBlacklist:
-    {{- toYaml $item.namespaceResourceBlacklist | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.destinations }}
+  {{- with $item.destinations }}
   destinations:
-    {{- toYaml $item.destinations | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.sourceRepos }}
+  {{- with $item.destinationServiceAccounts }}
+  destinationServiceAccounts:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.sourceRepos }}
   sourceRepos:
-    {{- toYaml $item.sourceRepos | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.sourceNamespaces }}
+  {{- with $item.sourceNamespaces }}
   sourceNamespaces:
-    {{- toYaml $item.sourceNamespaces | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.orphanedResources }}
+  {{- with $item.orphanedResources }}
   orphanedResources:
-    {{- toYaml $item.orphanedResources | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.syncWindows }}
+  {{- with $item.syncWindows }}
   syncWindows:
-    {{- toYaml $item.syncWindows | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.roles }}
+  {{- with $item.roles }}
   roles:
-    {{- toYaml $item.roles | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.signatureKeys }}
+  {{- with $item.signatureKeys }}
   signatureKeys:
-    {{- toYaml $item.signatureKeys | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with $item.sourceIntegrity }}
+  sourceIntegrity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- else }}
+spec: {}
+{{- end }}
 {{- end }}
 {{- end }}

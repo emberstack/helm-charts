@@ -1,11 +1,110 @@
+## cert-manager extensions
+## Targets the cert-manager.io/v1 API as shipped with cert-manager v1.21.1
+## https://cert-manager.io/docs/reference/api-docs/
+
 nameOverride: ""
 fullnameOverride: ""
 namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
+## @section Issuer / ClusterIssuer parameters
+## NOTE: these two are LISTS (each entry needs its own `name`), unlike `certificates`
+## below which is a map keyed by name. Exactly one backend (acme / ca / selfSigned /
+## vault / venafi) should be set per entry.
 issuers: []
 clusterIssuers: []
+# - name: letsencrypt          # required for list entries
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   acme:
+#     email: ops@example.com
+#     server: https://acme-v02.api.letsencrypt.org/directory
+#     profile: ""              # ACME certificate profile, if the server offers one
+#     caBundle: ""             # base64 PEM bundle validating the ACME server
+#     skipTLSVerify: false     # INSECURE
+#     preferredChain: ISRG Root X1
+#     disableAccountKeyGeneration: false
+#     enableDurationFeature: false
+#     externalAccountBinding:
+#       keyID: my-key-id
+#       keySecretRef:
+#         name: eab-secret
+#         key: secret
+#       keyAlgorithm: HS256
+#     privateKeySecretRef:
+#       name: ""               # defaults to <fullname>-private-key
+#       key: ""
+#     solvers:
+#       - dns01:
+#           cloudflare:
+#             apiTokenSecretRef:
+#               name: cloudflare-token
+#               key: token
+#
+# - name: internal-ca
+#   enabled: true
+#   ca:
+#     secretName: ca-key-pair
+#     ocspServers: []
+#     issuingCertificateURLs: []
+#     crlDistributionPoints: []
+#
+# - name: selfsigned
+#   enabled: true
+#   selfSigned:
+#     crlDistributionPoints: []
+#
+# - name: vault
+#   enabled: true
+#   vault:
+#     server: https://vault.example.com
+#     path: pki/sign/example
+#     namespace: ""
+#     serverName: ""
+#     caBundle: ""
+#     caBundleSecretRef: {name: vault-ca, key: ca.crt}
+#     clientCertSecretRef: {name: vault-client, key: tls.crt}
+#     clientKeySecretRef: {name: vault-client, key: tls.key}
+#     auth:
+#       ## exactly one of tokenSecretRef / appRole / kubernetes / clientCertificate / aws
+#       kubernetes:
+#         role: cert-manager
+#         mountPath: /v1/auth/kubernetes
+#         serviceAccountRef:
+#           name: cert-manager
+#           audiences: []
+#       ## AWS IAM auth requires cert-manager >= 1.21
+#       # aws:
+#       #   role: vault-role          # required
+#       #   region: eu-west-1
+#       #   iamRoleArn: arn:aws:iam::123456789012:role/vault
+#       #   mountPath: /v1/auth/aws
+#       #   vaultHeaderValue: ""
+#       #   serviceAccountRef:
+#       #     name: cert-manager
+#       #     audiences: []
+#
+# - name: venafi
+#   enabled: true
+#   venafi:
+#     zone: My Zone             # required
+#     tpp:
+#       url: https://tpp.example.com/vedsdk
+#       credentialsRef: {name: tpp-secret}
+#       caBundle: ""            # base64 PEM bundle validating the TPP server
+#       caBundleSecretRef: {name: tpp-ca, key: ca.crt}
+#     cloud:
+#       apiTokenSecretRef: {name: venafi-cloud, key: apikey}
+#       url: ""
+#     ## Venafi Next-Gen Trust Services requires cert-manager >= 1.21
+#     # ngts:
+#     #   tsgID: my-tsg-id        # required
+#     #   credentialsRef: {name: ngts-secret}   # required
+#     #   url: ""
+#     #   tokenEndpoint: ""
 
 ## @section Certificate parameters
 ## Map of certificates keyed by name. Maps merge across value files,
@@ -14,17 +113,56 @@ clusterIssuers: []
 certificates: {}
 # ingress:
 #   enabled: true
-#   name: ""                    # defaults to map key
 #   fullnameOverride: ""
 #   labels: {}
 #   annotations: {}
-#   secretName: my-cert-secret
-#   issuerRef:
+#   secretName: my-cert-secret          # required
+#   issuerRef:                          # required
 #     name: letsencrypt
 #     kind: ClusterIssuer
+#     group: cert-manager.io
+#   commonName: ""
+#   literalSubject: ""
+#   duration: 2160h
+#   renewBefore: 360h
+#   renewBeforePercentage: 33           # mutually exclusive with renewBefore
+#   ## Renewal policy and maintenance windows (cert-manager >= 1.21)
+#   renewal:
+#     policy: RenewBefore               # RenewBefore | Disabled
+#     windows:
+#       - cron: "0 2 * * SAT"           # required
+#         windowDuration: 4h            # required
+#         timezone: UTC
 #   dnsNames:
 #     - example.com
-#   extraDnsNames: []           # merged with dnsNames — use for per-env additions
+#   extraDnsNames: []                   # merged with dnsNames — use for per-env additions
 #   ipAddresses: []
 #   emailAddresses: []
-#   uriSans: []
+#   uris: []                            # `uriSans` is accepted as a legacy alias
+#   otherNames: []
+#   subject: {}
+#   nameConstraints: {}
+#   isCA: false
+#   encodeUsagesInRequest: true
+#   usages: []
+#   revisionHistoryLimit: 3
+#   signatureAlgorithm: ""
+#   additionalOutputFormats: []
+#   secretTemplate:
+#     annotations: {}
+#     labels: {}
+#   privateKey:
+#     algorithm: ECDSA                  # RSA | ECDSA | Ed25519
+#     encoding: PKCS1                   # PKCS1 | PKCS8
+#     size: 256
+#     rotationPolicy: Always            # Never | Always
+#   keystores:
+#     jks:
+#       create: true                    # required when jks is set
+#       ## password and passwordSecretRef are mutually exclusive
+#       passwordSecretRef: {name: jks-pw, key: password}
+#       alias: certificate
+#     pkcs12:
+#       create: true                    # required when pkcs12 is set
+#       passwordSecretRef: {name: p12-pw, key: password}
+#       profile: ""

@@ -1,0 +1,33 @@
+{{- if and .Values.dnsEndpoints (not (kindIs "slice" .Values.dnsEndpoints)) }}
+  {{- fail "dnsEndpoints must be a list (not a map). Use dnsEndpoints: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.dnsRecords (not (kindIs "slice" .Values.dnsRecords)) }}
+  {{- fail "dnsRecords must be a list (not a map). Use dnsRecords: [] with a name on each entry." }}
+{{- end }}
+
+{{/* List entries are addressed by their own name, so it is mandatory. */}}
+{{- range $k := (list "dnsEndpoints" "dnsRecords") }}
+{{- range $i, $item := (index $.Values $k) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.name }}
+    {{- fail (printf "%s[%d]: name is required for list entries." $k $i) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/* Required spec fields that would otherwise render as null. */}}
+{{- range $i, $item := .Values.dnsEndpoints }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.endpoints }}
+    {{- fail (printf "dnsEndpoints[%d] (%s): endpoints is required and must contain at least one entry." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.dnsRecords }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.endpoint }}
+    {{- fail (printf "dnsRecords[%d] (%s): endpoint is required by the DNSRecord CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}

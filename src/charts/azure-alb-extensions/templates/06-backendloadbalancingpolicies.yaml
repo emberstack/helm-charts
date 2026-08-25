@@ -6,30 +6,37 @@
 apiVersion: alb.networking.azure.io/v1
 kind: BackendLoadBalancingPolicy
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.namespace" $ }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
-  {{- if $item.targetRefs }}
   targetRefs:
     {{- range $item.targetRefs }}
-    - group: {{ .group | default "" | quote }}
-      kind: {{ .kind | default "Service" }}
-      name: {{ .name }}
-      {{- if .namespace }}
-      namespace: {{ .namespace }}
+    - targetRef:
+        group: {{ .targetRef.group | default "" | quote }}
+        kind: {{ .targetRef.kind | default "Service" | quote }}
+        name: {{ .targetRef.name | quote }}
+        {{- if .targetRef.namespace }}
+        namespace: {{ .targetRef.namespace | quote }}
+        {{- end }}
+        {{- with .targetRef.sectionNames }}
+        sectionNames:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- with .ports }}
+      ports:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
-  {{- end }}
-  {{- if $item.loadBalancing }}
+  {{- with $item.loadBalancing }}
   loadBalancing:
-    {{- toYaml $item.loadBalancing | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $item.circuitBreaker }}
+  {{- with $item.circuitBreaker }}
   circuitBreaker:
-    {{- toYaml $item.circuitBreaker | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

@@ -6,24 +6,24 @@
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.namespace" $ }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   from:
     {{- range $item.from }}
-    - group: {{ .group | default "gateway.networking.k8s.io" }}
-      kind: {{ .kind }}
-      namespace: {{ .namespace }}
+    - group: {{ .group | default "gateway.networking.k8s.io" | quote }}
+      kind: {{ .kind | quote }}
+      namespace: {{ .namespace | quote }}
     {{- end }}
   to:
     {{- range $item.to }}
     - group: {{ .group | default "" | quote }}
-      kind: {{ .kind }}
+      kind: {{ .kind | quote }}
       {{- if .name }}
-      name: {{ .name }}
+      name: {{ .name | quote }}
       {{- end }}
     {{- end }}
 {{- end }}

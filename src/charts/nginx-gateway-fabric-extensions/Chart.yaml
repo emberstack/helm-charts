@@ -12,6 +12,10 @@ keywords:
 - clientsettingspolicy
 - observabilitypolicy
 - ratelimitpolicy
+- nginxproxy
+- authenticationfilter
+- wafpolicy
+- snippetsfilter
 home: https://github.com/emberstack/helm-charts
 sources:
 - https://github.com/emberstack/helm-charts

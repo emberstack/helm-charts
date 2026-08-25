@@ -1,0 +1,21 @@
+{{- range $i, $item := .Values.nginxGateways }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.nginx.org/v1alpha1
+kind: NginxGateway
+metadata:
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+{{- with $item.logging }}
+spec:
+  logging:
+    {{- toYaml . | nindent 4 }}
+{{- else }}
+spec: {}
+{{- end }}
+{{- end }}
+{{- end }}

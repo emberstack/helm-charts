@@ -1,7 +1,52 @@
+## external-dns extensions
+## Targets externaldns.k8s.io/v1alpha1 as shipped with external-dns v0.22.0
+## https://kubernetes-sigs.github.io/external-dns/
+
 nameOverride: ""
 fullnameOverride: ""
 namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
+## Both sections are LISTS; each entry needs its own `name`.
+## `dnsName`, `recordType` and `targets` are required on every endpoint.
+## Every endpoint field is rendered as a Helm template (dnsName, recordType, setIdentifier,
+## targets, labels), so "{{ .Release.Namespace }}" works inside their values.
+
+## @section DNSEndpoint parameters
+## One resource carrying many endpoints.
 dnsEndpoints: []
+# - name: app-records            # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""                # defaults to the release namespace
+#   labels: {}
+#   annotations: {}
+#   endpoints:                   # required, at least one
+#     - dnsName: app.example.com # required
+#       recordType: A            # required (A, AAAA, CNAME, TXT, MX, SRV, NS, PTR ...)
+#       targets:                 # required
+#         - 203.0.113.10
+#       recordTTL: 300
+#       setIdentifier: ""        # for weighted / latency routing
+#       labels: {}
+#       providerSpecific:
+#         - name: external-dns.alpha.kubernetes.io/cloudflare-proxied
+#           value: "true"
+
+## @section DNSRecord parameters
+## One resource per record. Requires external-dns >= v0.22.0 — the CRD does not
+## exist in earlier releases.
+dnsRecords: []
+# - name: app-a-record           # required
+#   enabled: true
+#   fullnameOverride: ""
+#   namespace: ""
+#   labels: {}
+#   annotations: {}
+#   endpoint:                    # required; same schema as a dnsEndpoints endpoint
+#     dnsName: app.example.com
+#     recordType: A
+#     targets:
+#       - 203.0.113.10
+#     recordTTL: 300

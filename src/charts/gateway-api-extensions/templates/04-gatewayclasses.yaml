@@ -1,0 +1,28 @@
+{{- range $key, $item := .Values.gatewayClasses }}
+{{- $item := merge (dict "name" $key) $item -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ $fullName | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  controllerName: {{ $item.controllerName | quote }}
+  {{- with $item.description }}
+  description: {{ . | quote }}
+  {{- end }}
+  {{- with $item.parametersRef }}
+  parametersRef:
+    group: {{ .group | quote }}
+    kind: {{ .kind | quote }}
+    name: {{ .name | quote }}
+    {{- with .namespace }}
+    namespace: {{ . | quote }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

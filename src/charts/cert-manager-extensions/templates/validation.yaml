@@ -1,3 +1,43 @@
+{{- if and .Values.issuers (not (kindIs "slice" .Values.issuers)) }}
+  {{- fail "issuers must be a list (not a map). Use issuers: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.clusterIssuers (not (kindIs "slice" .Values.clusterIssuers)) }}
+  {{- fail "clusterIssuers must be a list (not a map). Use clusterIssuers: [] with a name on each entry." }}
+{{- end }}
 {{- if and .Values.certificates (not (kindIs "map" .Values.certificates)) }}
   {{- fail "certificates must be a map (not a list). Use certificates: {} with named keys." }}
+{{- end }}
+
+{{/* List entries are addressed by their own name, so it is mandatory. */}}
+{{- range $i, $item := .Values.issuers }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.name }}
+    {{- fail (printf "issuers[%d]: name is required for list entries." $i) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.clusterIssuers }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.name }}
+    {{- fail (printf "clusterIssuers[%d]: name is required for list entries." $i) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/* Each enabled Issuer/ClusterIssuer must configure exactly one backend, otherwise spec would be empty. */}}
+{{- range $k := (list "issuers" "clusterIssuers") }}
+{{- range $i, $item := (index $.Values $k) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- $backends := list }}
+  {{- range $b := (list "acme" "ca" "selfSigned" "vault" "venafi") }}
+    {{- if hasKey $item $b }}{{- $backends = append $backends $b }}{{- end }}
+  {{- end }}
+  {{- if eq (len $backends) 0 }}
+    {{- fail (printf "%s[%d] (%s): one of acme, ca, selfSigned, vault or venafi must be set." $k $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+  {{- if gt (len $backends) 1 }}
+    {{- fail (printf "%s[%d] (%s): only one backend may be set, found: %s" $k $i (default "<unnamed>" $item.name) (join ", " $backends)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}

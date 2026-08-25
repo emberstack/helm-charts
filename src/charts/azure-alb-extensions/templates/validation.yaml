@@ -16,3 +16,43 @@
 {{- if and .Values.backendLoadBalancingPolicies (not (kindIs "map" .Values.backendLoadBalancingPolicies)) }}
   {{- fail "backendLoadBalancingPolicies must be a map (not a list). Use backendLoadBalancingPolicies: {} with named keys." }}
 {{- end }}
+{{- if and .Values.applicationLoadBalancers (not (kindIs "map" .Values.applicationLoadBalancers)) }}
+  {{- fail "applicationLoadBalancers must be a map (not a list). Use applicationLoadBalancers: {} with named keys." }}
+{{- end }}
+{{- if and .Values.ipAccessRulesPolicies (not (kindIs "map" .Values.ipAccessRulesPolicies)) }}
+  {{- fail "ipAccessRulesPolicies must be a map (not a list). Use ipAccessRulesPolicies: {} with named keys." }}
+{{- end }}
+{{- if and .Values.ingressExtensions (not (kindIs "map" .Values.ingressExtensions)) }}
+  {{- fail "ingressExtensions must be a map (not a list). Use ingressExtensions: {} with named keys." }}
+{{- end }}
+
+{{/* BackendLoadBalancingPolicy: targetRefs entries wrap a nested targetRef (alb.networking.azure.io/v1). */}}
+{{- range $key, $item := .Values.backendLoadBalancingPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "backendLoadBalancingPolicies.%s: targetRefs is required by the BackendLoadBalancingPolicy CRD." $key) }}
+  {{- end }}
+  {{- range $i, $ref := $item.targetRefs }}
+    {{- if not $ref.targetRef }}
+      {{- fail (printf "backendLoadBalancingPolicies.%s.targetRefs[%d]: each entry must nest the reference under 'targetRef'. Change '- group/kind/name' to '- targetRef: {group, kind, name}'." $key $i) }}
+    {{- end }}
+    {{- if not $ref.targetRef.name }}
+      {{- fail (printf "backendLoadBalancingPolicies.%s.targetRefs[%d].targetRef.name is required." $key $i) }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/* IPAccessRulesPolicy: targetRefs is required and flat (no nested targetRef). */}}
+{{- range $key, $item := .Values.ipAccessRulesPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "ipAccessRulesPolicies.%s: targetRefs is required by the IPAccessRulesPolicy CRD." $key) }}
+  {{- end }}
+  {{- range $i, $ref := $item.targetRefs }}
+    {{- if not $ref.name }}
+      {{- fail (printf "ipAccessRulesPolicies.%s.targetRefs[%d].name is required." $key $i) }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

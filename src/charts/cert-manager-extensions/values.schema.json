@@ -8,31 +8,268 @@
       "description": "Global values shared across parent and subcharts",
       "additionalProperties": true
     },
-    "nameOverride": { "type": "string" },
-    "fullnameOverride": { "type": "string" },
-    "namespaceOverride": { "type": "string" },
-    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
-    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
-    "issuers": { "type": "array", "description": "List of cert-manager Issuer resources" },
-    "clusterIssuers": { "type": "array", "description": "List of cert-manager ClusterIssuer resources" },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "namespaceOverride": {
+      "type": "string"
+    },
+    "commonLabels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "issuers": {
+      "type": "array",
+      "description": "List of cert-manager Issuer resources (each entry needs a name)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "acme": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "ca": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "selfSigned": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "vault": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "venafi": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "clusterIssuers": {
+      "type": "array",
+      "description": "List of cert-manager ClusterIssuer resources (each entry needs a name)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "acme": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "ca": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "selfSigned": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "vault": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "venafi": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
     "certificates": {
       "type": "object",
       "description": "Map of cert-manager Certificate resources keyed by name",
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "name": { "type": "string" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "secretName": { "type": "string" },
-          "issuerRef": { "type": "object", "additionalProperties": true },
-          "dnsNames": { "type": "array", "items": { "type": "string" } },
-          "extraDnsNames": { "type": "array", "items": { "type": "string" } },
-          "ipAddresses": { "type": "array", "items": { "type": "string" } },
-          "emailAddresses": { "type": "array", "items": { "type": "string" } },
-          "uriSans": { "type": "array", "items": { "type": "string" } }
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "secretName": {
+            "type": "string"
+          },
+          "issuerRef": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "commonName": {
+            "type": "string"
+          },
+          "literalSubject": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string"
+          },
+          "renewBefore": {
+            "type": "string"
+          },
+          "renewBeforePercentage": {
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Coerced with int64 when rendered"
+          },
+          "renewal": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "dnsNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "extraDnsNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ipAddresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emailAddresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uris": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uriSans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "otherNames": {
+            "type": "array"
+          },
+          "subject": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "nameConstraints": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "isCA": {
+            "type": "boolean"
+          },
+          "encodeUsagesInRequest": {
+            "type": "boolean"
+          },
+          "usages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "revisionHistoryLimit": {
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Coerced with int64 when rendered"
+          },
+          "signatureAlgorithm": {
+            "type": "string"
+          },
+          "additionalOutputFormats": {
+            "type": "array"
+          },
+          "secretTemplate": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "privateKey": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "keystores": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       }
     }

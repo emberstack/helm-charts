@@ -13,6 +13,9 @@ keywords:
 - waf
 - healthcheck
 - routepolicy
+- applicationloadbalancer
+- ingressextension
+- ipaccessrulespolicy
 home: https://github.com/emberstack/helm-charts
 sources:
 - https://github.com/emberstack/helm-charts

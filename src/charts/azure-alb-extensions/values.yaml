@@ -1,16 +1,32 @@
+## Azure Application Gateway for Containers (ALB) extensions
+## CRD reference: alb.networking.azure.io/v1 (ALB Controller 1.11.4)
+## https://learn.microsoft.com/azure/application-gateway/for-containers/api-specification-kubernetes
+
 nameOverride: ""
 fullnameOverride: ""
 namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
-webApplicationFirewallPolicies: {}
-# my-waf-policy:          # key = name
+## ApplicationLoadBalancer - the Application Gateway for Containers resource itself.
+applicationLoadBalancers: {}
+# my-alb:                  # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
 #   annotations: {}
-#   targetRef:
+#   ## Subnet resource IDs the Application Gateway for Containers is associated with.
+#   associations:
+#     - /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/virtualNetworks/<vnet>/subnets/<subnet>
+
+## WebApplicationFirewallPolicy - requires ALB Controller securityPolicyFeatureFlag (default: true).
+webApplicationFirewallPolicies: {}
+# my-waf-policy:           # key = name
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRef:             # group, kind and name are required
 #     group: gateway.networking.k8s.io
 #     kind: Gateway
 #     name: my-gateway
@@ -19,6 +35,7 @@ webApplicationFirewallPolicies: {}
 #   webApplicationFirewall:
 #     id: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<policy>
 
+## HealthCheckPolicy - `default` applies unless the target defines its own; `override` always wins.
 healthCheckPolicies: {}
 # my-healthcheck:          # key = name
 #   enabled: true
@@ -29,7 +46,7 @@ healthCheckPolicies: {}
 #     group: ""
 #     kind: Service
 #     name: my-service
-#   default:
+#   default:               # same schema as `override`
 #     port: 8080
 #     interval: 5s
 #     timeout: 5s
@@ -40,12 +57,18 @@ healthCheckPolicies: {}
 #       host: ""
 #       path: /health
 #       match:
+#         body: ""
 #         statusCodes:
 #           - start: 200
 #             end: 299
+#     grpc:
+#       service: ""
+#       authority: ""
+#   override: {}
 
+## RoutePolicy - session affinity and route timeouts.
 routePolicies: {}
-# my-route-policy:          # key = name
+# my-route-policy:         # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
@@ -54,17 +77,18 @@ routePolicies: {}
 #     group: gateway.networking.k8s.io
 #     kind: HTTPRoute
 #     name: my-route
-#   default:
+#   default:               # same schema as `override`
 #     timeouts:
 #       routeTimeout: 60s
 #     sessionAffinity:
-#       enabled: true
-#       affinityType: Application
-#       cookieName: my-cookie
-#       cookieDuration: 3600
+#       affinityType: managed-cookie   # managed-cookie | application-cookie
+#       cookieName: my-cookie          # required for application-cookie
+#       cookieDuration: 3600s
+#   override: {}
 
+## FrontendTLSPolicy - frontend TLS profile and optional mutual authentication.
 frontendTLSPolicies: {}
-# my-frontend-tls:          # key = name
+# my-frontend-tls:         # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
@@ -75,10 +99,10 @@ frontendTLSPolicies: {}
 #     name: my-gateway
 #     sectionNames:
 #       - https
-#   default:
+#   default:               # same schema as `override`
 #     policyType:
-#       type: predefined
-#       name: 2024-01
+#       type: predefined   # only `predefined` is supported
+#       name: "2023-06"    # 2023-06 | 2023-06-S
 #     verify:
 #       caCertificateRef:
 #         name: my-ca-cert
@@ -86,7 +110,9 @@ frontendTLSPolicies: {}
 #         kind: Secret
 #       subjectAltNames:
 #         - "*.example.com"
+#   override: {}
 
+## BackendTLSPolicy - backend TLS verification and client certificates.
 backendTLSPolicies: {}
 # my-backend-tls:          # key = name
 #   enabled: true
@@ -97,19 +123,120 @@ backendTLSPolicies: {}
 #     group: ""
 #     kind: Service
 #     name: my-service
-#   default: {}
+#   default:               # same schema as `override`
+#     sni: backend.example.com
+#     ports:
+#       - port: 443
+#     clientCertificateRef:
+#       name: my-client-cert
+#       group: ""
+#       kind: Secret
+#     verify:
+#       caCertificateRef:
+#         name: my-ca-cert
+#         group: ""
+#         kind: Secret
+#       subjectAltName: backend.example.com
+#   override: {}
 
+## BackendLoadBalancingPolicy - load balancing strategy and circuit breaking.
+## NOTE: each targetRefs entry nests the reference under `targetRef`.
 backendLoadBalancingPolicies: {}
-# my-lb-policy:          # key = name
+# my-lb-policy:            # key = name
 #   enabled: true
 #   fullnameOverride: ""
 #   labels: {}
 #   annotations: {}
-#   targetRefs:
-#     - group: ""
-#       kind: Service
-#       name: my-service
+#   targetRefs:            # required
+#     - targetRef:
+#         group: ""
+#         kind: Service
+#         name: my-service
+#         namespace: ""
+#         sectionNames: []
+#       ports:
+#         - port: 8080
 #   loadBalancing:
-#     strategy: RoundRobin
+#     strategy: round-robin          # round-robin | least-request | load-aware
+#     slowStart:
+#       window: 30s                  # required when slowStart is set
+#       aggression: "1.0"
+#       startWeightPercent: 10
+#     loadAware:
+#       blackoutPeriod: 10s
+#       metricExpirationPeriod: 60s
+#       errorUtilizationPenalty: "1.0"
+#       namedMetrics: []
 #   circuitBreaker:
-#     maxConnections: 100
+#     maxConnections: 1024
+#     maxPendingRequests: 1024
+#     maxRequests: 1024
+#     maxRetries: 3
+
+## IPAccessRulesPolicy - requires ALB Controller ipAccessRulesFeatureFlag=true (default: false),
+## otherwise the CRD is not installed in the cluster.
+ipAccessRulesPolicies: {}
+# my-ip-rules:             # key = name
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:            # required; flat references (no nested targetRef)
+#     - group: gateway.networking.k8s.io
+#       kind: Gateway
+#       name: my-gateway
+#       namespace: ""
+#   ipAccessRules:
+#     - name: allow-corp
+#       action: Allow      # Allow | Deny
+#       priority: 100      # 1-200
+#       sourceAddressPrefixes:
+#         - 10.0.0.0/8
+
+## IngressExtension - extends the Ingress API with ALB-specific backend settings and rules.
+ingressExtensions: {}
+# my-ingress-extension:    # key = name
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   backendSettings:
+#     - service: my-service          # required
+#       trustedRootCertificate: ""
+#       ports:
+#         - port: 8080
+#           protocol: HTTP           # HTTP | HTTPS (required)
+#           name: ""
+#       timeouts:
+#         requestTimeout: 60s
+#       sessionAffinity:
+#         affinityType: managed-cookie
+#         cookieName: ""
+#         cookieDuration: 3600s
+#       loadBalancingPolicySpec:
+#         targetRefs:
+#           - targetRef:
+#               group: ""
+#               kind: Service
+#               name: my-service
+#         loadBalancing:
+#           strategy: round-robin
+#   rules:
+#     - host: www.example.com        # required
+#       additionalHostnames: []
+#       requestRedirect:
+#         scheme: https              # http | https
+#         hostname: www.example.com
+#         port: 443
+#         statusCode: 301            # 301 | 302 | 303 | 307 | 308
+#         path:
+#           type: ReplacePrefixMatch # ReplaceFullPath | ReplacePrefixMatch
+#           replacePrefixMatch: /
+#       rewrites:
+#         - type: RequestHeaderModifier  # RequestHeaderModifier | ResponseHeaderModifier | URLRewrite
+#           requestHeaderModifier:
+#             add:
+#               - name: X-Forwarded-Host
+#                 value: www.example.com
+#             set: []
+#             remove: []

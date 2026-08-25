@@ -6,42 +6,25 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.namespace" $ }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
-  {{- if $item.parentRefs }}
+  {{- with $item.parentRefs }}
   parentRefs:
-    {{- range $item.parentRefs }}
-    - name: {{ .name }}
-      {{- if .namespace }}
-      namespace: {{ .namespace }}
-      {{- end }}
-      {{- if .group }}
-      group: {{ .group }}
-      {{- end }}
-      {{- if .kind }}
-      kind: {{ .kind }}
-      {{- end }}
-      {{- if .sectionName }}
-      sectionName: {{ .sectionName }}
-      {{- end }}
-      {{- if .port }}
-      port: {{ .port }}
-      {{- end }}
-    {{- end }}
+    {{- include "gateway-api-extensions.parentRefs" (dict "refs" .) | trim | nindent 4 }}
   {{- end }}
-  {{- if $item.hostnames }}
+  {{- with $item.hostnames }}
   hostnames:
-    {{- range $item.hostnames }}
+    {{- range . }}
     - {{ . | quote }}
     {{- end }}
   {{- end }}
-  {{- if $item.rules }}
+  {{- with $item.rules }}
   rules:
-    {{- toYaml $item.rules | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

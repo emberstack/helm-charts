@@ -1,0 +1,76 @@
+{{- range $i, $item := .Values.nginxProxies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.nginx.org/v1alpha2
+kind: NginxProxy
+metadata:
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+{{- $hasSpec := or $item.workerConnections $item.ipFamily $item.serverTokens }}
+{{- $hasSpec = or $hasSpec (hasKey $item "disableHTTP2") (hasKey $item "disableSNIHostValidation") }}
+{{- $hasSpec = or $hasSpec $item.dnsResolver }}
+{{- $hasSpec = or $hasSpec $item.kubernetes }}
+{{- $hasSpec = or $hasSpec $item.logging }}
+{{- $hasSpec = or $hasSpec $item.metrics }}
+{{- $hasSpec = or $hasSpec $item.nginxPlus }}
+{{- $hasSpec = or $hasSpec $item.rewriteClientIP }}
+{{- $hasSpec = or $hasSpec $item.telemetry }}
+{{- $hasSpec = or $hasSpec $item.waf }}
+{{- if $hasSpec }}
+spec:
+  {{- if hasKey $item "disableHTTP2" }}
+  disableHTTP2: {{ $item.disableHTTP2 }}
+  {{- end }}
+  {{- if hasKey $item "disableSNIHostValidation" }}
+  disableSNIHostValidation: {{ $item.disableSNIHostValidation }}
+  {{- end }}
+  {{- with $item.ipFamily }}
+  ipFamily: {{ . | quote }}
+  {{- end }}
+  {{- with $item.serverTokens }}
+  serverTokens: {{ . | quote }}
+  {{- end }}
+  {{- if $item.workerConnections }}
+  workerConnections: {{ $item.workerConnections | int64 }}
+  {{- end }}
+  {{- with $item.dnsResolver }}
+  dnsResolver:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.kubernetes }}
+  kubernetes:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.logging }}
+  logging:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.metrics }}
+  metrics:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.nginxPlus }}
+  nginxPlus:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.rewriteClientIP }}
+  rewriteClientIP:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.telemetry }}
+  telemetry:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.waf }}
+  waf:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- else }}
+spec: {}
+{{- end }}
+{{- end }}
+{{- end }}

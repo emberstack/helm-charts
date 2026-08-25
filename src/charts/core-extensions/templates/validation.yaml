@@ -1,0 +1,55 @@
+{{- if and .Values.configMaps (not (kindIs "slice" .Values.configMaps)) }}
+  {{- fail "configMaps must be a list (not a map). Use configMaps: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.secrets (not (kindIs "slice" .Values.secrets)) }}
+  {{- fail "secrets must be a list (not a map). Use secrets: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.serviceAccounts (not (kindIs "slice" .Values.serviceAccounts)) }}
+  {{- fail "serviceAccounts must be a list (not a map). Use serviceAccounts: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.namespaces (not (kindIs "slice" .Values.namespaces)) }}
+  {{- fail "namespaces must be a list (not a map). Use namespaces: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.resourceQuotas (not (kindIs "slice" .Values.resourceQuotas)) }}
+  {{- fail "resourceQuotas must be a list (not a map). Use resourceQuotas: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.limitRanges (not (kindIs "slice" .Values.limitRanges)) }}
+  {{- fail "limitRanges must be a list (not a map). Use limitRanges: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.priorityClasses (not (kindIs "slice" .Values.priorityClasses)) }}
+  {{- fail "priorityClasses must be a list (not a map). Use priorityClasses: [] with a name on each entry." }}
+{{- end }}
+
+{{/* List entries are addressed by their own name, so it is mandatory. */}}
+{{- range $k := (list "configMaps" "secrets" "serviceAccounts" "namespaces" "resourceQuotas" "limitRanges" "priorityClasses") }}
+{{- range $i, $item := (index $.Values $k) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.name }}
+    {{- fail (printf "%s[%d]: name is required for list entries." $k $i) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/* Required spec fields that would otherwise render as null. */}}
+{{- range $i, $item := .Values.limitRanges }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.limits }}
+    {{- fail (printf "limitRanges[%d] (%s): limits is required by the LimitRange API." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.priorityClasses }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not (hasKey $item "value") }}
+    {{- fail (printf "priorityClasses[%d] (%s): value is required by the PriorityClass API." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.resourceQuotas }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not (or $item.hard $item.scopes $item.scopeSelector) }}
+    {{- fail (printf "resourceQuotas[%d] (%s): set at least one of hard, scopes or scopeSelector." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -8,23 +8,92 @@
       "description": "Global values shared across parent and subcharts",
       "additionalProperties": true
     },
-    "nameOverride": { "type": "string" },
-    "fullnameOverride": { "type": "string" },
-    "namespaceOverride": { "type": "string" },
-    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
-    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "namespaceOverride": {
+      "type": "string"
+    },
+    "commonLabels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "applicationLoadBalancers": {
+      "type": "object",
+      "description": "Map of ApplicationLoadBalancer resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "associations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "webApplicationFirewallPolicies": {
       "type": "object",
       "description": "Map of WebApplicationFirewallPolicy resources keyed by name",
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "targetRef": { "type": "object", "additionalProperties": true },
-          "webApplicationFirewall": { "type": "object", "additionalProperties": true }
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRef": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "webApplicationFirewall": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       }
     },
@@ -34,12 +103,36 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "targetRef": { "type": "object", "additionalProperties": true },
-          "default": { "type": "object", "additionalProperties": true }
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRef": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "override": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       }
     },
@@ -49,12 +142,36 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "targetRef": { "type": "object", "additionalProperties": true },
-          "default": { "type": "object", "additionalProperties": true }
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRef": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "override": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       }
     },
@@ -64,12 +181,36 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "targetRef": { "type": "object", "additionalProperties": true },
-          "default": { "type": "object", "additionalProperties": true }
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRef": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "override": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       }
     },
@@ -79,12 +220,36 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "targetRef": { "type": "object", "additionalProperties": true },
-          "default": { "type": "object", "additionalProperties": true }
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRef": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "default": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "override": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       }
     },
@@ -94,13 +259,120 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "enabled": { "type": "boolean" },
-          "fullnameOverride": { "type": "string" },
-          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-          "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
-          "targetRefs": { "type": "array" },
-          "loadBalancing": { "type": "object", "additionalProperties": true },
-          "circuitBreaker": { "type": "object", "additionalProperties": true }
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "targetRef": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "ports": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "loadBalancing": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "circuitBreaker": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "ipAccessRulesPolicies": {
+      "type": "object",
+      "description": "Map of IPAccessRulesPolicy resources keyed by name (requires ALB Controller ipAccessRulesFeatureFlag=true)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "ipAccessRules": {
+            "type": "array"
+          },
+          "ipaccessrules": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "ingressExtensions": {
+      "type": "object",
+      "description": "Map of IngressExtension resources keyed by name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "backendSettings": {
+            "type": "array"
+          },
+          "rules": {
+            "type": "array"
+          }
         }
       }
     }

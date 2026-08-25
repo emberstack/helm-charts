@@ -1,0 +1,115 @@
+{{- if and .Values.clientSettingsPolicies (not (kindIs "slice" .Values.clientSettingsPolicies)) }}
+  {{- fail "clientSettingsPolicies must be a list (not a map). Use clientSettingsPolicies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.observabilityPolicies (not (kindIs "slice" .Values.observabilityPolicies)) }}
+  {{- fail "observabilityPolicies must be a list (not a map). Use observabilityPolicies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.rateLimitPolicies (not (kindIs "slice" .Values.rateLimitPolicies)) }}
+  {{- fail "rateLimitPolicies must be a list (not a map). Use rateLimitPolicies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.upstreamSettingsPolicies (not (kindIs "slice" .Values.upstreamSettingsPolicies)) }}
+  {{- fail "upstreamSettingsPolicies must be a list (not a map). Use upstreamSettingsPolicies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.proxySettingsPolicies (not (kindIs "slice" .Values.proxySettingsPolicies)) }}
+  {{- fail "proxySettingsPolicies must be a list (not a map). Use proxySettingsPolicies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.snippetsPolicies (not (kindIs "slice" .Values.snippetsPolicies)) }}
+  {{- fail "snippetsPolicies must be a list (not a map). Use snippetsPolicies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.snippetsFilters (not (kindIs "slice" .Values.snippetsFilters)) }}
+  {{- fail "snippetsFilters must be a list (not a map). Use snippetsFilters: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.nginxProxies (not (kindIs "slice" .Values.nginxProxies)) }}
+  {{- fail "nginxProxies must be a list (not a map). Use nginxProxies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.authenticationFilters (not (kindIs "slice" .Values.authenticationFilters)) }}
+  {{- fail "authenticationFilters must be a list (not a map). Use authenticationFilters: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.wafPolicies (not (kindIs "slice" .Values.wafPolicies)) }}
+  {{- fail "wafPolicies must be a list (not a map). Use wafPolicies: [] with a name on each entry." }}
+{{- end }}
+{{- if and .Values.nginxGateways (not (kindIs "slice" .Values.nginxGateways)) }}
+  {{- fail "nginxGateways must be a list (not a map). Use nginxGateways: [] with a name on each entry." }}
+{{- end }}
+
+{{/* List entries are addressed by their own name, so it is mandatory. */}}
+{{- range $k := (list "clientSettingsPolicies" "observabilityPolicies" "rateLimitPolicies" "upstreamSettingsPolicies" "proxySettingsPolicies" "snippetsPolicies" "snippetsFilters" "nginxProxies" "authenticationFilters" "wafPolicies" "nginxGateways") }}
+{{- range $i, $item := (index $.Values $k) }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.name }}
+    {{- fail (printf "%s[%d]: name is required for list entries." $k $i) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/* Fields the CRDs mark required — these would otherwise render as null. */}}
+{{- range $i, $item := .Values.clientSettingsPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRef }}
+    {{- fail (printf "clientSettingsPolicies[%d] (%s): targetRef is required by the ClientSettingsPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.observabilityPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "observabilityPolicies[%d] (%s): targetRefs is required by the ObservabilityPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.rateLimitPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "rateLimitPolicies[%d] (%s): targetRefs is required by the RateLimitPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.upstreamSettingsPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "upstreamSettingsPolicies[%d] (%s): targetRefs is required by the UpstreamSettingsPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.proxySettingsPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "proxySettingsPolicies[%d] (%s): targetRefs is required by the ProxySettingsPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.snippetsPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "snippetsPolicies[%d] (%s): targetRefs is required by the SnippetsPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.snippetsFilters }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.snippets }}
+    {{- fail (printf "snippetsFilters[%d] (%s): snippets is required by the SnippetsFilter CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.authenticationFilters }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.type }}
+    {{- fail (printf "authenticationFilters[%d] (%s): type is required by the AuthenticationFilter CRD (Basic, OIDC or JWT)." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- range $i, $item := .Values.wafPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.type }}
+    {{- fail (printf "wafPolicies[%d] (%s): type is required by the WAFPolicy CRD (HTTP, NIM or N1C)." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "wafPolicies[%d] (%s): targetRefs is required by the WAFPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+  {{- if not $item.policySource }}
+    {{- fail (printf "wafPolicies[%d] (%s): policySource is required by the WAFPolicy CRD." $i (default "<unnamed>" $item.name)) }}
+  {{- end }}
+{{- end }}
+{{- end }}

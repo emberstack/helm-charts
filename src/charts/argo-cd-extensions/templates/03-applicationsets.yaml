@@ -1,0 +1,48 @@
+{{- range $i, $item := .Values.applicationSets }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  generators:
+    {{- toYaml $item.generators | nindent 4 }}
+  template:
+    {{- toYaml $item.template | nindent 4 }}
+  {{- if hasKey $item "goTemplate" }}
+  goTemplate: {{ $item.goTemplate }}
+  {{- end }}
+  {{- if hasKey $item "applyNestedSelectors" }}
+  applyNestedSelectors: {{ $item.applyNestedSelectors }}
+  {{- end }}
+  {{- with $item.templatePatch }}
+  templatePatch: {{ . | quote }}
+  {{- end }}
+  {{- with $item.syncPolicy }}
+  syncPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.preservedFields }}
+  preservedFields:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.ignoreApplicationDifferences }}
+  ignoreApplicationDifferences:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.goTemplateOptions }}
+  goTemplateOptions:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

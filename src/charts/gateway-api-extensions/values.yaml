@@ -1,15 +1,34 @@
+## Gateway API extensions
+## Targets the Gateway API standard channel, v1.6.1
+## https://gateway-api.sigs.k8s.io/reference/spec/
+
 nameOverride: ""
 fullnameOverride: ""
 namespaceOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 
+## @section GatewayClass parameters
+## Cluster-scoped. Map of gateway classes keyed by name.
+gatewayClasses: {}
+# nginx:
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   controllerName: gateway.nginx.org/nginx-gateway-controller   # required
+#   description: "NGINX Gateway Fabric"
+#   parametersRef:
+#     group: gateway.nginx.org
+#     kind: NginxProxy
+#     name: my-proxy-config
+#     namespace: ""
+
 ## @section Gateway parameters
 ## Map of gateways keyed by name. Maps merge across value files.
 gateways: {}
 # my-gateway:
 #   enabled: true
-#   name: ""                    # defaults to map key
 #   fullnameOverride: ""
 #   labels: {}
 #   annotations: {}
@@ -18,22 +37,64 @@ gateways: {}
 #     - name: https
 #       port: 443
 #       protocol: HTTPS
+#       hostname: app.example.com
 #       tls:
-#         mode: Terminate
+#         mode: Terminate       # Terminate | Passthrough
 #         certificateRefs:
 #           - name: wildcard-tls
+#         options: {}
 #       allowedRoutes:
 #         namespaces:
 #           from: All
 #   addresses: []
 #   infrastructure: {}
+#   ## Controls which ListenerSets may attach to this Gateway (Gateway API >= v1.5).
+#   allowedListeners:
+#     namespaces:
+#       from: Same              # All | Selector | Same | None
+#   ## Gateway-wide TLS: client cert for backends, frontend validation (Gateway API >= v1.5).
+#   tls:
+#     backend:
+#       clientCertificateRef:
+#         name: client-cert
+#         kind: Secret
+#         group: ""
+#     frontend:
+#       default:
+#         validation:
+#           mode: AllowValidOnly    # AllowValidOnly | AllowInsecureFallback
+#           caCertificateRefs:
+#             - name: ca-bundle
+#               kind: ConfigMap
+#               group: ""
+
+## @section ListenerSet parameters
+## Attaches extra listeners to an existing Gateway (Gateway API >= v1.5).
+listenerSets: {}
+# extra-listeners:
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   parentRef:                  # required
+#     group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: my-gateway
+#     namespace: ""
+#   listeners:                  # required; same schema as gateways[].listeners
+#     - name: extra-https
+#       port: 8443
+#       protocol: HTTPS
+#       tls:
+#         mode: Terminate
+#         certificateRefs:
+#           - name: extra-tls
 
 ## @section HTTPRoute parameters
 ## Map of HTTP routes keyed by name. Maps merge across value files.
 httpRoutes: {}
 # my-route:
 #   enabled: true
-#   name: ""
 #   fullnameOverride: ""
 #   labels: {}
 #   annotations: {}
@@ -51,12 +112,108 @@ httpRoutes: {}
 #         - name: my-service
 #           port: 8080
 
+## @section GRPCRoute parameters
+grpcRoutes: {}
+# my-grpc-route:
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   parentRefs:
+#     - name: my-gateway
+#       sectionName: grpc
+#   hostnames:
+#     - grpc.example.com
+#   rules:
+#     - matches:
+#         - method:
+#             service: my.package.Service
+#             method: MyMethod
+#       backendRefs:
+#         - name: my-grpc-service
+#           port: 9090
+
+## @section TLSRoute parameters
+## Passthrough TLS routing. hostnames and rules are both required.
+tlsRoutes: {}
+# my-tls-route:
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   parentRefs:
+#     - name: my-gateway
+#       sectionName: tls
+#   hostnames:                  # required
+#     - secure.example.com
+#   rules:                      # required (exactly one rule)
+#     - backendRefs:
+#         - name: my-service
+#           port: 8443
+
+## @section TCPRoute parameters
+## Requires Gateway API >= v1.6 on the standard channel.
+tcpRoutes: {}
+# my-tcp-route:
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   parentRefs:
+#     - name: my-gateway
+#       sectionName: tcp
+#   rules:                      # required (exactly one rule)
+#     - backendRefs:
+#         - name: my-service
+#           port: 5432
+
+## @section UDPRoute parameters
+## Requires Gateway API >= v1.6 on the standard channel.
+udpRoutes: {}
+# my-udp-route:
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   parentRefs:
+#     - name: my-gateway
+#       sectionName: udp
+#   rules:                      # required (exactly one rule)
+#     - backendRefs:
+#         - name: my-service
+#           port: 53
+
+## @section BackendTLSPolicy parameters
+## Configures how a Gateway connects to a backend over TLS.
+backendTLSPolicies: {}
+# my-backend-tls:
+#   enabled: true
+#   fullnameOverride: ""
+#   labels: {}
+#   annotations: {}
+#   targetRefs:                 # required
+#     - group: ""
+#       kind: Service
+#       name: my-service
+#       sectionName: ""
+#   validation:                 # required
+#     hostname: backend.example.com
+#     caCertificateRefs:
+#       - name: ca-bundle
+#         kind: ConfigMap
+#         group: ""
+#     ## Use instead of caCertificateRefs to trust the system bundle:
+#     # wellKnownCACertificates: System
+#     subjectAltNames:
+#       - type: Hostname        # Hostname | URI
+#         hostname: backend.example.com
+#   options: {}
+
 ## @section ReferenceGrant parameters
 ## Map of reference grants keyed by name. Maps merge across value files.
 referenceGrants: {}
 # allow-cert-ref:
 #   enabled: true
-#   name: ""
 #   fullnameOverride: ""
 #   from:
 #     - group: gateway.networking.k8s.io

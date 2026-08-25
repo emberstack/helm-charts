@@ -1,0 +1,33 @@
+{{- range $key, $item := .Values.backendTLSPolicies }}
+{{- $item := merge (dict "name" $key) $item -}}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+{{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels:
+    {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
+  {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
+spec:
+  targetRefs:
+    {{- range $item.targetRefs }}
+    - group: {{ .group | default "" | quote }}
+      kind: {{ .kind | default "Service" | quote }}
+      name: {{ .name | quote }}
+      {{- with .sectionName }}
+      sectionName: {{ . | quote }}
+      {{- end }}
+    {{- end }}
+  {{- with $item.validation }}
+  validation:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $item.options }}
+  options:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

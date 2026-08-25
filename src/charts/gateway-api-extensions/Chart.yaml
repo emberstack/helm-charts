@@ -11,6 +11,13 @@ keywords:
 - gateway-api
 - httproute
 - referencegrant
+- gatewayclass
+- grpcroute
+- tlsroute
+- tcproute
+- udproute
+- listenerset
+- backendtlspolicy
 - networking
 home: https://github.com/emberstack/helm-charts
 sources:

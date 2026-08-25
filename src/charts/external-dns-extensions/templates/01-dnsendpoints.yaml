@@ -1,49 +1,19 @@
-{{- range .Values.dnsEndpoints }}
-{{- $item := . -}}
+{{- range $i, $item := .Values.dnsEndpoints }}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   endpoints:
-    {{- range $endpoint := $item.endpoints }}
-    - {{- if $endpoint.dnsName }}
-      dnsName: {{ $endpoint.dnsName }}
-      {{- else }}
-      {{- fail "dnsName is required for each endpoint" }}
-      {{- end }}
-      {{- if $endpoint.labels }}
-      labels:
-        {{- toYaml $endpoint.labels | nindent 8 }}
-      {{- end }}
-      {{- if $endpoint.providerSpecific }}
-      providerSpecific:
-        {{- toYaml $endpoint.providerSpecific | nindent 8 }}
-      {{- end }}
-      {{- if $endpoint.recordTTL }}
-      recordTTL: {{ $endpoint.recordTTL }}
-      {{- end }}
-      {{- if $endpoint.recordType }}
-      recordType: {{ $endpoint.recordType }}
-      {{- else }}
-      {{- fail "recordType is required for each endpoint" }}
-      {{- end }}
-      {{- if $endpoint.setIdentifier }}
-      setIdentifier: {{ $endpoint.setIdentifier }}
-      {{- end }}
-      {{- if $endpoint.targets }}
-      targets:
-        {{- toYaml $endpoint.targets | nindent 8 }}
-      {{- else }}
-      {{- fail "targets is required for each endpoint" }}
-      {{- end }}
+    {{- range $j, $endpoint := $item.endpoints }}
+    - {{ include "external-dns-extensions.endpoint" (dict "endpoint" $endpoint "context" $ "path" (printf "dnsEndpoints[%d].endpoints[%d]" $i $j)) | trim | indent 6 | trim }}
     {{- end }}
 {{- end }}
 {{- end }}

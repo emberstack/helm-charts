@@ -8,17 +8,652 @@
       "description": "Global values shared across parent and subcharts",
       "additionalProperties": true
     },
-    "nameOverride": { "type": "string" },
-    "fullnameOverride": { "type": "string" },
-    "namespaceOverride": { "type": "string" },
-    "commonLabels": { "type": "object", "additionalProperties": { "type": "string" } },
-    "commonAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
-    "clientSettingsPolicies": { "type": "array", "description": "List of ClientSettingsPolicy resources" },
-    "observabilityPolicies": { "type": "array", "description": "List of ObservabilityPolicy resources" },
-    "rateLimitPolicies": { "type": "array", "description": "List of RateLimitPolicy resources" },
-    "upstreamSettingsPolicies": { "type": "array", "description": "List of UpstreamSettingsPolicy resources" },
-    "proxySettingsPolicies": { "type": "array", "description": "List of ProxySettingsPolicy resources" },
-    "snippetsPolicies": { "type": "array", "description": "List of SnippetsPolicy resources" },
-    "snippetsFilters": { "type": "array", "description": "List of SnippetsFilter resources" }
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "namespaceOverride": {
+      "type": "string"
+    },
+    "commonLabels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "clientSettingsPolicies": {
+      "type": "array",
+      "description": "List of ClientSettingsPolicy resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRef": {
+            "type": "object",
+            "properties": {
+              "group": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "body": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "keepAlive": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "observabilityPolicies": {
+      "type": "array",
+      "description": "List of ObservabilityPolicy resources (gateway.nginx.org/v1alpha2)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "group": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "tracing": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "rateLimitPolicies": {
+      "type": "array",
+      "description": "List of RateLimitPolicy resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "group": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "rateLimit": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "upstreamSettingsPolicies": {
+      "type": "array",
+      "description": "List of UpstreamSettingsPolicy resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "group": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "zoneSize": {
+            "type": [
+              "string",
+              "integer"
+            ],
+            "description": "Quoted when rendered; nginx zone size e.g. 512k"
+          },
+          "loadBalancingMethod": {
+            "type": "string"
+          },
+          "hashMethodKey": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          },
+          "keepAlive": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "proxySettingsPolicies": {
+      "type": "array",
+      "description": "List of ProxySettingsPolicy resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "group": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "buffering": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "timeout": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "snippetsPolicies": {
+      "type": "array",
+      "description": "List of SnippetsPolicy resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "group": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "snippets": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "snippetsFilters": {
+      "type": "array",
+      "description": "List of SnippetsFilter resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "snippets": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "nginxProxies": {
+      "type": "array",
+      "description": "List of NginxProxy resources (gateway.nginx.org/v1alpha2)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "ipFamily": {
+            "type": "string",
+            "enum": [
+              "dual",
+              "ipv4",
+              "ipv6"
+            ]
+          },
+          "serverTokens": {
+            "type": "string"
+          },
+          "workerConnections": {
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Coerced with int64 when rendered",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "disableHTTP2": {
+            "type": "boolean"
+          },
+          "disableSNIHostValidation": {
+            "type": "boolean"
+          },
+          "logging": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "telemetry": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "dnsResolver": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "rewriteClientIP": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "kubernetes": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "nginxPlus": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "waf": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "authenticationFilters": {
+      "type": "array",
+      "description": "List of AuthenticationFilter resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Basic",
+              "OIDC",
+              "JWT"
+            ]
+          },
+          "basic": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "jwt": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "oidc": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "wafPolicies": {
+      "type": "array",
+      "description": "List of WAFPolicy resources (gateway.nginx.org/v1alpha1); requires NGINX Plus with App Protect",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "HTTP",
+              "NIM",
+              "N1C"
+            ]
+          },
+          "targetRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "group": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "policySource": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "securityLogs": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "nginxGateways": {
+      "type": "array",
+      "description": "List of NginxGateway resources (gateway.nginx.org/v1alpha1)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fullnameOverride": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "logging": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
   }
 }

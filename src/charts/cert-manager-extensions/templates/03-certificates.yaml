@@ -6,47 +6,64 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   {{- if $item.secretName }}
-  secretName: {{ $item.secretName }}
+  secretName: {{ $item.secretName | quote }}
   {{- else }}
   {{- fail "secretName is required for Certificate" }}
   {{- end }}
   {{- if $item.issuerRef }}
   issuerRef:
     {{- if $item.issuerRef.name }}
-    name: {{ $item.issuerRef.name }}
+    name: {{ $item.issuerRef.name | quote }}
     {{- else }}
     {{- fail "issuerRef.name is required for Certificate" }}
     {{- end }}
     {{- if $item.issuerRef.group }}
-    group: {{ $item.issuerRef.group }}
+    group: {{ $item.issuerRef.group | quote }}
     {{- end }}
     {{- if $item.issuerRef.kind }}
-    kind: {{ $item.issuerRef.kind }}
+    kind: {{ $item.issuerRef.kind | quote }}
     {{- end }}
   {{- else }}
   {{- fail "issuerRef is required for Certificate" }}
   {{- end }}
   {{- if $item.duration }}
-  duration: {{ $item.duration }}
+  duration: {{ $item.duration | quote }}
   {{- end }}
   {{- if $item.renewBefore }}
-  renewBefore: {{ $item.renewBefore }}
+  renewBefore: {{ $item.renewBefore | quote }}
   {{- end }}
   {{- if $item.renewBeforePercentage }}
-  renewBeforePercentage: {{ $item.renewBeforePercentage }}
+  renewBeforePercentage: {{ $item.renewBeforePercentage | int64 }}
+  {{- end }}
+  {{- if $item.renewal }}
+  # Renewal policy and maintenance windows (cert-manager >= 1.21)
+  renewal:
+    {{- if $item.renewal.policy }}
+    policy: {{ $item.renewal.policy | quote }}
+    {{- end }}
+    {{- if $item.renewal.windows }}
+    windows:
+      {{- range $item.renewal.windows }}
+      - cron: {{ .cron | quote }}
+        windowDuration: {{ .windowDuration | quote }}
+        {{- if .timezone }}
+        timezone: {{ .timezone | quote }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
   {{- end }}
   {{- if $item.commonName }}
-  commonName: {{ $item.commonName }}
+  commonName: {{ $item.commonName | quote }}
   {{- end }}
   {{- if $item.literalSubject }}
-  literalSubject: {{ $item.literalSubject }}
+  literalSubject: {{ $item.literalSubject | quote }}
   {{- end }}
   {{- $dnsNames := concat (default list $item.dnsNames) (default list $item.extraDnsNames) }}
   {{- if $dnsNames }}
@@ -61,9 +78,10 @@ spec:
   emailAddresses:
     {{- include "common.tplvalues.render" (dict "value" $item.emailAddresses "context" $) | nindent 4 }}
   {{- end }}
-  {{- if $item.uriSans }}
+  {{- $uris := default $item.uriSans $item.uris }}
+  {{- if $uris }}
   uris:
-    {{- include "common.tplvalues.render" (dict "value" $item.uriSans "context" $) | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" $uris "context" $) | nindent 4 }}
   {{- end }}
   {{- if $item.otherNames }}
   otherNames:
@@ -88,9 +106,9 @@ spec:
     {{- toYaml $item.nameConstraints | nindent 4 }}
   {{- end }}
   {{- if $item.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ $item.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ $item.revisionHistoryLimit | int64 }}
   {{- end }}
-  {{- if $item.secretTemplate }}
+  {{- if and $item.secretTemplate (or $item.secretTemplate.annotations $item.secretTemplate.labels) }}
   secretTemplate:
     {{- if $item.secretTemplate.annotations }}
     annotations:
@@ -102,7 +120,7 @@ spec:
     {{- end }}
   {{- end }}
   {{- if $item.signatureAlgorithm }}
-  signatureAlgorithm: {{ $item.signatureAlgorithm }}
+  signatureAlgorithm: {{ $item.signatureAlgorithm | quote }}
   {{- end }}
   {{- if $item.keystores }}
   keystores:
@@ -114,20 +132,20 @@ spec:
       {{- fail "keystores.jks.create is required when jks is configured" }}
       {{- end }}
       {{- if $item.keystores.jks.password }}
-      password: {{ $item.keystores.jks.password }}
+      password: {{ $item.keystores.jks.password | quote }}
       {{- else if $item.keystores.jks.passwordSecretRef }}
       passwordSecretRef:
         {{- if $item.keystores.jks.passwordSecretRef.name }}
-        name: {{ $item.keystores.jks.passwordSecretRef.name }}
+        name: {{ $item.keystores.jks.passwordSecretRef.name | quote }}
         {{- else }}
         {{- fail "keystores.jks.passwordSecretRef.name is required when passwordSecretRef is specified" }}
         {{- end }}
         {{- if $item.keystores.jks.passwordSecretRef.key }}
-        key: {{ $item.keystores.jks.passwordSecretRef.key }}
+        key: {{ $item.keystores.jks.passwordSecretRef.key | quote }}
         {{- end }}
       {{- end }}
       {{- if $item.keystores.jks.alias }}
-      alias: {{ $item.keystores.jks.alias }}
+      alias: {{ $item.keystores.jks.alias | quote }}
       {{- end }}
     {{- end }}
     {{- if $item.keystores.pkcs12 }}
@@ -138,36 +156,36 @@ spec:
       {{- fail "keystores.pkcs12.create is required when pkcs12 is configured" }}
       {{- end }}
       {{- if $item.keystores.pkcs12.password }}
-      password: {{ $item.keystores.pkcs12.password }}
+      password: {{ $item.keystores.pkcs12.password | quote }}
       {{- else if $item.keystores.pkcs12.passwordSecretRef }}
       passwordSecretRef:
         {{- if $item.keystores.pkcs12.passwordSecretRef.name }}
-        name: {{ $item.keystores.pkcs12.passwordSecretRef.name }}
+        name: {{ $item.keystores.pkcs12.passwordSecretRef.name | quote }}
         {{- else }}
         {{- fail "keystores.pkcs12.passwordSecretRef.name is required when passwordSecretRef is specified" }}
         {{- end }}
         {{- if $item.keystores.pkcs12.passwordSecretRef.key }}
-        key: {{ $item.keystores.pkcs12.passwordSecretRef.key }}
+        key: {{ $item.keystores.pkcs12.passwordSecretRef.key | quote }}
         {{- end }}
       {{- end }}
       {{- if $item.keystores.pkcs12.profile }}
-      profile: {{ $item.keystores.pkcs12.profile }}
+      profile: {{ $item.keystores.pkcs12.profile | quote }}
       {{- end }}
     {{- end }}
   {{- end }}
   {{- if $item.privateKey }}
   privateKey:
     {{- if $item.privateKey.algorithm }}
-    algorithm: {{ $item.privateKey.algorithm }}
+    algorithm: {{ $item.privateKey.algorithm | quote }}
     {{- end }}
     {{- if $item.privateKey.encoding }}
-    encoding: {{ $item.privateKey.encoding }}
+    encoding: {{ $item.privateKey.encoding | quote }}
     {{- end }}
     {{- if $item.privateKey.size }}
-    size: {{ $item.privateKey.size }}
+    size: {{ $item.privateKey.size | int64 }}
     {{- end }}
     {{- if $item.privateKey.rotationPolicy }}
-    rotationPolicy: {{ $item.privateKey.rotationPolicy }}
+    rotationPolicy: {{ $item.privateKey.rotationPolicy | quote }}
     {{- end }}
   {{- end }}
   {{- if $item.usages }}

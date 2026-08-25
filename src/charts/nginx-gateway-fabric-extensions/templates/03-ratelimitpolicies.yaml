@@ -1,26 +1,21 @@
-{{- range .Values.rateLimitPolicies }}
-{{- $item := . -}}
+{{- range $i, $item := .Values.rateLimitPolicies }}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
 apiVersion: gateway.nginx.org/v1alpha1
 kind: RateLimitPolicy
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.namespace" $ }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   targetRefs:
-    {{- range $item.targetRefs }}
-    - group: {{ .group | default "gateway.networking.k8s.io" }}
-      kind: {{ .kind | default "HTTPRoute" }}
-      name: {{ .name }}
-    {{- end }}
-  {{- if $item.rateLimit }}
+    {{- include "nginx-gateway-fabric-extensions.targetRefs" (dict "refs" $item.targetRefs "defaultGroup" "gateway.networking.k8s.io" "defaultKind" "HTTPRoute") | trim | nindent 4 }}
+  {{- with $item.rateLimit }}
   rateLimit:
-    {{- toYaml $item.rateLimit | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}

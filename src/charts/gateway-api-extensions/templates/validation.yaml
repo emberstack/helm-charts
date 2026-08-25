@@ -7,3 +7,90 @@
 {{- if and .Values.referenceGrants (not (kindIs "map" .Values.referenceGrants)) }}
   {{- fail "referenceGrants must be a map (not a list). Use referenceGrants: {} with named keys." }}
 {{- end }}
+{{- if and .Values.gatewayClasses (not (kindIs "map" .Values.gatewayClasses)) }}
+  {{- fail "gatewayClasses must be a map (not a list). Use gatewayClasses: {} with named keys." }}
+{{- end }}
+{{- if and .Values.grpcRoutes (not (kindIs "map" .Values.grpcRoutes)) }}
+  {{- fail "grpcRoutes must be a map (not a list). Use grpcRoutes: {} with named keys." }}
+{{- end }}
+{{- if and .Values.tlsRoutes (not (kindIs "map" .Values.tlsRoutes)) }}
+  {{- fail "tlsRoutes must be a map (not a list). Use tlsRoutes: {} with named keys." }}
+{{- end }}
+{{- if and .Values.tcpRoutes (not (kindIs "map" .Values.tcpRoutes)) }}
+  {{- fail "tcpRoutes must be a map (not a list). Use tcpRoutes: {} with named keys." }}
+{{- end }}
+{{- if and .Values.udpRoutes (not (kindIs "map" .Values.udpRoutes)) }}
+  {{- fail "udpRoutes must be a map (not a list). Use udpRoutes: {} with named keys." }}
+{{- end }}
+{{- if and .Values.backendTLSPolicies (not (kindIs "map" .Values.backendTLSPolicies)) }}
+  {{- fail "backendTLSPolicies must be a map (not a list). Use backendTLSPolicies: {} with named keys." }}
+{{- end }}
+{{- if and .Values.listenerSets (not (kindIs "map" .Values.listenerSets)) }}
+  {{- fail "listenerSets must be a map (not a list). Use listenerSets: {} with named keys." }}
+{{- end }}
+
+{{/* Required-field checks for the kinds added alongside Gateway API v1.6 support. */}}
+{{- range $key, $item := .Values.gatewayClasses }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.controllerName }}
+    {{- fail (printf "gatewayClasses.%s: controllerName is required by the GatewayClass CRD." $key) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $key, $item := .Values.listenerSets }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.parentRef }}
+    {{- fail (printf "listenerSets.%s: parentRef is required by the ListenerSet CRD." $key) }}
+  {{- end }}
+  {{- if not $item.listeners }}
+    {{- fail (printf "listenerSets.%s: listeners is required by the ListenerSet CRD." $key) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $key, $item := .Values.backendTLSPolicies }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.targetRefs }}
+    {{- fail (printf "backendTLSPolicies.%s: targetRefs is required by the BackendTLSPolicy CRD." $key) }}
+  {{- end }}
+  {{- if not $item.validation }}
+    {{- fail (printf "backendTLSPolicies.%s: validation is required by the BackendTLSPolicy CRD." $key) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $key, $item := .Values.tlsRoutes }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.hostnames }}
+    {{- fail (printf "tlsRoutes.%s: hostnames is required by the TLSRoute CRD." $key) }}
+  {{- end }}
+  {{- if not $item.rules }}
+    {{- fail (printf "tlsRoutes.%s: rules is required by the TLSRoute CRD." $key) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $key, $item := .Values.tcpRoutes }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.rules }}
+    {{- fail (printf "tcpRoutes.%s: rules is required by the TCPRoute CRD." $key) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $key, $item := .Values.udpRoutes }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if not $item.rules }}
+    {{- fail (printf "udpRoutes.%s: rules is required by the UDPRoute CRD." $key) }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $key, $item := .Values.listenerSets }}
+{{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
+  {{- if and $item.parentRef (not $item.parentRef.name) }}
+    {{- fail (printf "listenerSets.%s.parentRef.name is required." $key) }}
+  {{- end }}
+{{- end }}
+{{- end }}

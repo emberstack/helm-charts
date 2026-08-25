@@ -1,35 +1,30 @@
-{{- range .Values.upstreamSettingsPolicies }}
-{{- $item := . -}}
+{{- range $i, $item := .Values.upstreamSettingsPolicies }}
 {{- if eq (include "common.item.enabled" (dict "item" $item)) "true" }}
 {{- $fullName := include "common.names.item.fullname" (dict "item" $item "context" $) }}
 ---
 apiVersion: gateway.nginx.org/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
-  name: {{ $fullName }}
-  namespace: {{ include "common.names.namespace" $ }}
+  name: {{ $fullName | quote }}
+  namespace: {{ include "common.names.item.namespace" (dict "item" $item "context" $) | quote }}
   labels:
     {{- include "common.labels.item" (dict "item" $item "customLabels" $.Values.commonLabels "context" $) | nindent 4 }}
   {{- include "common.annotations.render" (dict "annotations" (merge (default dict $item.annotations) (default dict $.Values.commonAnnotations)) "context" $) | nindent 2 }}
 spec:
   targetRefs:
-    {{- range $item.targetRefs }}
-    - group: {{ .group | default "" | quote }}
-      kind: {{ .kind | default "Service" }}
-      name: {{ .name }}
-    {{- end }}
-  {{- if $item.zoneSize }}
-  zoneSize: {{ $item.zoneSize }}
+    {{- include "nginx-gateway-fabric-extensions.targetRefs" (dict "refs" $item.targetRefs "defaultGroup" "" "defaultKind" "Service") | trim | nindent 4 }}
+  {{- with $item.zoneSize }}
+  zoneSize: {{ . | quote }}
   {{- end }}
-  {{- if $item.loadBalancingMethod }}
-  loadBalancingMethod: {{ $item.loadBalancingMethod }}
+  {{- with $item.loadBalancingMethod }}
+  loadBalancingMethod: {{ . | quote }}
   {{- end }}
-  {{- if $item.hashMethodKey }}
-  hashMethodKey: {{ $item.hashMethodKey }}
+  {{- with $item.hashMethodKey }}
+  hashMethodKey: {{ . | quote }}
   {{- end }}
-  {{- if $item.keepAlive }}
+  {{- with $item.keepAlive }}
   keepAlive:
-    {{- toYaml $item.keepAlive | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
 {{- end }}
