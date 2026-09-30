@@ -21,48 +21,44 @@ spec:
   hostnames:
     {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
   {{- end }}
+  {{- /*
+  Every HTTPRouteRule field is passed through as given. Only three get defaults:
+  backendRefs point at this release's Service, filters are merged with
+  httpRoute.extraFilters, and timeouts fall back to httpRoute.timeouts. With no
+  rules configured, a single rule made of those defaults is rendered.
+  */}}
+  {{- $fullName := include "generic.fullname" . }}
+  {{- $extraFilters := list }}
+  {{- range (default list .Values.httpRoute.extraFilters) }}
+  {{- $extraFilters = append $extraFilters (include "common.tplvalues.render" (dict "value" . "context" $) | fromYaml) }}
+  {{- end }}
+  {{- $rules := list }}
+  {{- range (default (list dict) .Values.httpRoute.rules) }}
+  {{- $rule := omit . "backendRefs" "filters" "timeouts" }}
+  {{- range $key, $value := $rule }}
+  {{- if empty $value }}{{ $_ := unset $rule $key }}{{ end }}
+  {{- end }}
+  {{- $backendRefs := list }}
+  {{- range (default (list dict) .backendRefs) }}
+  {{- $ref := deepCopy . }}
+  {{- range $key, $value := $ref }}
+  {{- if or (kindIs "invalid" $value) (eq (toString $value) "") }}{{ $_ := unset $ref $key }}{{ end }}
+  {{- end }}
+  {{- $_ := set $ref "name" (default $fullName .name) }}
+  {{- $_ := set $ref "port" (default $.Values.service.port .port) }}
+  {{- $backendRefs = append $backendRefs $ref }}
+  {{- end }}
+  {{- $_ := set $rule "backendRefs" $backendRefs }}
+  {{- with (concat (default list .filters) $extraFilters) }}
+  {{- $_ := set $rule "filters" . }}
+  {{- end }}
+  {{- with (default $.Values.httpRoute.timeouts .timeouts) }}
+  {{- $_ := set $rule "timeouts" . }}
+  {{- end }}
+  {{- $rules = append $rules $rule }}
+  {{- end }}
   rules:
-    {{- if .Values.httpRoute.rules }}
-    {{- range .Values.httpRoute.rules }}
-    - {{- if .matches }}
-      matches:
-        {{- toYaml .matches | nindent 8 }}
-      {{- end }}
-      backendRefs:
-        {{- if .backendRefs }}
-        {{- range .backendRefs }}
-        - name: {{ default (include "generic.fullname" $) .name }}
-          port: {{ default $.Values.service.port .port }}
-          {{- if .weight }}
-          weight: {{ .weight }}
-          {{- end }}
-          {{- if .namespace }}
-          namespace: {{ .namespace }}
-          {{- end }}
-        {{- end }}
-        {{- else }}
-        - name: {{ include "generic.fullname" $ }}
-          port: {{ $.Values.service.port }}
-        {{- end }}
-      {{- $renderedExtraFilters := list }}
-      {{- range (default list $.Values.httpRoute.extraFilters) }}
-      {{- $renderedExtraFilters = append $renderedExtraFilters (include "common.tplvalues.render" (dict "value" . "context" $) | fromYaml) }}
-      {{- end }}
-      {{- $filters := concat (default list .filters) $renderedExtraFilters }}
-      {{- if $filters }}
-      filters:
-        {{- toYaml $filters | nindent 8 }}
-      {{- end }}
-    {{- end }}
-    {{- else }}
-    - backendRefs:
-        - name: {{ include "generic.fullname" . }}
-          port: {{ .Values.service.port }}
-      {{- with .Values.httpRoute.extraFilters }}
-      filters:
-        {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
-      {{- end }}
-    {{- end }}
+    {{- toYaml $rules | nindent 4 }}
 {{- if .Values.httpRoute.httpRedirect.enabled }}
 ---
 {{- $redirect := .Values.httpRoute.httpRedirect }}

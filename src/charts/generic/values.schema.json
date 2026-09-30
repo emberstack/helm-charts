@@ -275,6 +275,14 @@
         "parentRefs": { "type": "array" },
         "hostnames": { "type": "array", "items": { "type": "string" } },
         "rules": { "type": "array" },
+        "timeouts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "request": { "type": "string", "pattern": "^([0-9]{1,5}(h|m|s|ms)){1,4}$" },
+            "backendRequest": { "type": "string", "pattern": "^([0-9]{1,5}(h|m|s|ms)){1,4}$" }
+          }
+        },
         "extraFilters": { "type": "array" },
         "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
         "labels": { "type": "object", "additionalProperties": { "type": "string" } },

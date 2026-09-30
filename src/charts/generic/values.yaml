@@ -258,8 +258,12 @@ httpRoute:
   #   namespace: gateway-ns
   #   sectionName: https
   hostnames: []
+  ## HTTPRouteRule fields are passed through as given. backendRefs default to
+  ## this release's Service, filters are merged with extraFilters, and timeouts
+  ## fall back to httpRoute.timeouts. Empty = one rule made of those defaults.
   rules: []
-  # - matches:
+  # - name: api           # optional rule name
+  #   matches:
   #     - path:
   #         type: PathPrefix
   #         value: /
@@ -268,12 +272,22 @@ httpRoute:
   #       port: 80      # defaults to service.port
   #       weight: 1
   #       namespace: ""
+  #       group: ""     # with kind, targets a non-Service backend
+  #       kind: Service
+  #       filters: []   # backend-level filters
   #   filters:
   #     - type: RequestHeaderModifier
   #       requestHeaderModifier:
   #         set:
   #           - name: X-Forwarded-Proto
   #             value: https
+  #   timeouts:         # overrides httpRoute.timeouts for this rule
+  #     request: 30s
+  ## Gateway API rule timeouts, applied to every rule that sets none of its own.
+  ## "0s" disables a timeout. backendRequest must not exceed request.
+  timeouts: {}
+  # request: 60s          # client request to response
+  # backendRequest: 30s   # single gateway-to-backend attempt
   extraFilters: []
   # - type: ExtensionRef
   #   extensionRef:

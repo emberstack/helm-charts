@@ -252,7 +252,8 @@ Default probes can be overridden with `custom*Probe` or disabled entirely with `
 | `httpRoute.enabled` | Enable HTTPRoute | `false` |
 | `httpRoute.parentRefs` | Gateway parent references | `[]` |
 | `httpRoute.hostnames` | Route hostnames | `[]` |
-| `httpRoute.rules` | Route rules (auto-generates default if empty) | `[]` |
+| `httpRoute.rules` | Route rules; every HTTPRouteRule field is passed through, with `backendRefs` defaulting to the release Service (auto-generates default if empty) | `[]` |
+| `httpRoute.timeouts` | Rule timeouts (`request`, `backendRequest`) for every rule without its own `timeouts`; `0s` disables | `{}` |
 | `httpRoute.annotations` | HTTPRoute annotations | `{}` |
 | `httpRoute.labels` | HTTPRoute labels | `{}` |
 | `httpRoute.httpRedirect.enabled` | Enable HTTP→HTTPS redirect companion | `false` |
